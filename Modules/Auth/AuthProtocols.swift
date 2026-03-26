@@ -21,6 +21,10 @@ protocol AuthService {
     func login(request: LoginRequest) async throws -> UserSession
 }
 
+protocol AuthEmailValidating {
+    func validate(email: String) -> AuthEmailValidationResult
+}
+
 protocol AuthModuleBuilding {
     func build(
         input: AuthModuleInput,

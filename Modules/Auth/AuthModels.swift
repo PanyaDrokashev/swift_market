@@ -22,3 +22,8 @@ struct LoginRequest: Equatable, Sendable {
     let email: String
     let password: String
 }
+
+enum AuthEmailValidationResult: Equatable {
+    case valid
+    case invalid(message: String)
+}

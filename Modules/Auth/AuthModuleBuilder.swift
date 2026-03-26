@@ -8,8 +8,12 @@ final class AuthModuleBuilder: AuthModuleBuilding {
     ) -> UIViewController {
         let router = AuthRouterImpl()
         router.output = output
+        let emailValidator = AuthEmailValidator()
 
-        let viewController = AuthViewController(presenter: AuthPresenterPlaceholder())
+        let viewController = AuthViewController(
+            presenter: AuthPresenterPlaceholder(),
+            emailValidator: emailValidator
+        )
         let presenter = AuthPresenter(
             view: viewController,
             input: input,

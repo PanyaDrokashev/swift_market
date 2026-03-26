@@ -2,6 +2,7 @@ import UIKit
 
 final class AuthViewController: UIViewController, AuthView {
     private var presenter: AuthPresenterProtocol
+    private let emailValidator: AuthEmailValidating
     private let scrollView = UIScrollView()
     private let contentView = UIView()
     private let stackView = UIStackView()
@@ -17,8 +18,12 @@ final class AuthViewController: UIViewController, AuthView {
     private var isLoading = false
     private var isLoginAllowedByState = true
 
-    init(presenter: AuthPresenterProtocol) {
+    init(
+        presenter: AuthPresenterProtocol,
+        emailValidator: AuthEmailValidating
+    ) {
         self.presenter = presenter
+        self.emailValidator = emailValidator
         super.init(nibName: nil, bundle: nil)
         title = "Авторизация"
     }
@@ -249,7 +254,7 @@ final class AuthViewController: UIViewController, AuthView {
     }
 
     private func submitLogin() {
-        guard validationMessage == nil else {
+        guard currentValidationMessage == nil else {
             refreshValidationUI()
             return
         }
@@ -261,7 +266,7 @@ final class AuthViewController: UIViewController, AuthView {
     }
 
     private func refreshValidationUI() {
-        let validationMessage = validationMessage
+        let validationMessage = currentValidationMessage
         let visibleErrorMessage = validationMessage ?? serviceErrorMessage
 
         errorLabel.text = visibleErrorMessage
@@ -274,28 +279,15 @@ final class AuthViewController: UIViewController, AuthView {
         emailTextField.layer.borderColor = isEmailInvalid ? UIColor.systemRed.cgColor : UIColor.clear.cgColor
     }
 
-    private var validationMessage: String? {
-        let email = emailTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let password = passwordTextField.text ?? ""
+    private var currentValidationMessage: String? {
+        let email = emailTextField.text ?? ""
 
-        guard !email.isEmpty else {
+        switch emailValidator.validate(email: email) {
+        case .valid:
             return nil
+        case .invalid(let message):
+            return message
         }
-
-        guard Self.isValidEmail(email) else {
-            return "Введите корректный email"
-        }
-
-        guard !password.isEmpty else {
-            return nil
-        }
-
-        return nil
-    }
-
-    private static func isValidEmail(_ email: String) -> Bool {
-        let pattern = #"^[A-Z0-9a-z._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$"#
-        return email.range(of: pattern, options: .regularExpression) != nil
     }
 }
 
