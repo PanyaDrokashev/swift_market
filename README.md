@@ -1,41 +1,144 @@
 # Swift Market
 
-## Как запустить
+## Архитектура
 
-1. Открыть проект `swift_market.xcodeproj` в Xcode.
-2. Выбрать симулятор iPhone.
-3. Запустить `Run`.
+Для лабораторной выбрана архитектура `MVP + Coordinator`.
 
-Если Xcode показывает `Multiple commands produce ... Info.plist`, нужно удалить [`Info.plist`](/Users/daniil/Desktop/swift_market/swift_market/Info.plist) из `Target -> Build Phases -> Copy Bundle Resources` и оставить его только в `Build Settings -> Info.plist File`.
+- `ViewController` отвечает только за отображение состояния и отправку событий пользователя.
+- `Presenter` содержит сценарии экрана и легко тестируется через моки `View`, `Router` и `Service`.
+- `Coordinator` выносит навигацию из экранов и делает переходы между модулями явными.
+- Сервисы и репозитории разделяют `Presentation`, `Domain` и `Data`, поэтому зависимости можно подменять на заглушки.
 
-## Верные данные для входа
+## Модули
 
-- `email`: `demo@swiftmarket.app`
-- `password`: `swift123`
+- `Auth`: авторизация пользователя и получение `UserSession`.
+- `Catalog`: список категорий и товаров, вход в основной сценарий маркета.
+- `ProductDetails`: карточка одного товара со статусом наличия и доставкой.
 
-Проверка локальная, сеть не используется.
+## Экраны
 
-## Что происходит после успешного входа
+### 1. Auth
 
-После успешной авторизации приложение переходит на экран-заглушку `Список фич`, который показывает greeting, список категорий и список доступных элементов каталога. Это соответствует требованиям лабораторной: после логина открывается следующий экран приложения.
+Вход:
 
-## Реализация лабораторной
+- `AuthModuleInput(prefilledEmail:)` для автозаполнения email.
 
-- `UIKit`-экран авторизации собран вручную через `Auto Layout`.
-- Используется архитектура `MVP + Coordinator`.
-- `ViewController` не хранит бизнес-логику входа.
-- Зависимости выражены через протоколы `AuthView`, `AuthPresenterProtocol`, `AuthRouter`, `AuthService`.
-- Навигация выполняется через [`AppCoordinator`](/Users/daniil/Desktop/swift_market/swift_market/Application/AppCoordinator.swift).
-- Для маленьких экранов экран авторизации обёрнут в `UIScrollView`.
-- Клавиатура учитывается через обновление `contentInset`, поэтому поля и кнопка не перекрываются.
-- При неверных данных показывается inline-ошибка.
-- Во время проверки кнопка входа дизейблится и отображается индикатор загрузки.
-- `Return` на клавиатуре переводит фокус `email -> password -> submit`.
+Выход:
 
-## Структура
+- `authModuleDidAuthenticate(_:)` после успешного входа.
 
-- `Application/` содержит координатор приложения.
-- `Modules/Auth/` содержит полностью реализованный экран авторизации.
-- `Modules/Catalog/` содержит экран-заглушку после успешного входа.
-- `Modules/ProductDetails/` содержит каркас карточки товара.
-- `Shared/` содержит доменные модели, контракты и stub-реализации.
+Состояния UI:
+
+- `initial`
+- `loading`
+- `content`
+- `error`
+
+Основные сценарии:
+
+- Пользователь открывает экран, презентер отправляет `initial` с подготовленным `AuthInitialViewModel`.
+- Пользователь вводит email и пароль, нажимает login, экран переходит в `loading`.
+- `AuthService` возвращает `UserSession`, роутер открывает каталог.
+- Если авторизация не удалась, экран получает состояние `error` с текстом ошибки.
+
+### 2. Catalog
+
+Вход:
+
+- `CatalogModuleInput(session:selectedCategoryID:)` с активной сессией и выбранной категорией.
+
+Выход:
+
+- `catalogModuleDidSelectProduct(_:)` при выборе товара.
+- `catalogModuleDidRequestLogout()` при выходе.
+
+Состояния UI:
+
+- `initial`
+- `loading`
+- `content`
+- `empty`
+- `error`
+
+Основные сценарии:
+
+- После открытия экран запрашивает каталог и показывает `loading`.
+- При успешной загрузке отображается `content` со списком категорий и карточек товаров.
+- При выборе категории запускается повторная загрузка каталога с новым фильтром.
+- При выборе товара роутер открывает детальный экран.
+
+### 3. ProductDetails
+
+Вход:
+
+- `ProductDetailsModuleInput(productID:source:)` с идентификатором товара и источником перехода.
+
+Выход:
+
+- `productDetailsModuleDidFinish()` при закрытии экрана.
+
+Состояния UI:
+
+- `initial`
+- `loading`
+- `content`
+- `error`
+
+Основные сценарии:
+
+- Экран открывается по `productID` и сразу запрашивает детали товара.
+- Во время загрузки пользователь видит `loading`.
+- После ответа сервиса экран показывает `content` с ценой, атрибутами, наличием и доставкой.
+- Если загрузка не удалась, экран получает `error`.
+
+## Ключевые протоколы
+
+### View ↔ Presentation
+
+- `AuthView`, `AuthPresenterProtocol`
+- `CatalogView`, `CatalogPresenterProtocol`
+- `ProductDetailsView`, `ProductDetailsPresenterProtocol`
+
+### Presentation ↔ Domain
+
+- `AuthService`
+- `CatalogService`
+- `ProductDetailsService`
+
+### Domain ↔ Data
+
+- `AuthRepository`
+- `CatalogRepository`
+- `ProductRepository`
+- `SessionStorage`
+
+### Router / Navigation
+
+- `AuthRouter`
+- `CatalogRouter`
+- `ProductDetailsRouter`
+- `AppCoordinator`
+
+## Ключевые модели
+
+- `LoginRequest`
+- `UserSession`
+- `Money`
+- `ProductCategory`
+- `ProductListItem`
+- `CatalogContent`
+- `ProductDetails`
+- `ProductAttribute`
+- `DeliveryInfo`
+- `MarketError`
+- `AuthViewState`
+- `CatalogViewState`
+- `ProductDetailsViewState`
+
+## Структура проекта
+
+- `Application/` содержит `AppCoordinator`.
+- `Modules/Auth/` содержит контракты и пустую сборку экрана авторизации.
+- `Modules/Catalog/` содержит контракты и пустую сборку каталога.
+- `Modules/ProductDetails/` содержит контракты и пустую сборку карточки товара.
+- `Shared/` содержит доменные модели, data-контракты и stub-реализации сервисов.
