@@ -5,17 +5,26 @@ final class AppCoordinator {
     private let authService: AuthService
     private let catalogService: CatalogService
     private let productDetailsService: ProductDetailsService
+    private let authModuleBuilder: AuthModuleBuilding
+    private let catalogModuleBuilder: CatalogModuleBuilding
+    private let productDetailsModuleBuilder: ProductDetailsModuleBuilding
 
     init(
         navigationController: UINavigationController = UINavigationController(),
         authService: AuthService = StubAuthService(),
         catalogService: CatalogService = StubCatalogService(),
-        productDetailsService: ProductDetailsService = StubProductDetailsService()
+        productDetailsService: ProductDetailsService = StubProductDetailsService(),
+        authModuleBuilder: AuthModuleBuilding = AuthModuleBuilder(),
+        catalogModuleBuilder: CatalogModuleBuilding = CatalogModuleBuilder(),
+        productDetailsModuleBuilder: ProductDetailsModuleBuilding = ProductDetailsModuleBuilder()
     ) {
         self.navigationController = navigationController
         self.authService = authService
         self.catalogService = catalogService
         self.productDetailsService = productDetailsService
+        self.authModuleBuilder = authModuleBuilder
+        self.catalogModuleBuilder = catalogModuleBuilder
+        self.productDetailsModuleBuilder = productDetailsModuleBuilder
     }
 
     var rootViewController: UIViewController {
@@ -27,7 +36,7 @@ final class AppCoordinator {
     }
 
     private func showAuth() {
-        let viewController = AuthModuleBuilder.build(
+        let viewController = authModuleBuilder.build(
             input: AuthModuleInput(prefilledEmail: nil),
             output: self,
             authService: authService
@@ -36,7 +45,7 @@ final class AppCoordinator {
     }
 
     private func showCatalog(session: UserSession) {
-        let viewController = CatalogModuleBuilder.build(
+        let viewController = catalogModuleBuilder.build(
             input: CatalogModuleInput(session: session, selectedCategoryID: nil),
             output: self,
             catalogService: catalogService
@@ -45,7 +54,7 @@ final class AppCoordinator {
     }
 
     private func showProductDetails(productID: ProductID) {
-        let viewController = ProductDetailsModuleBuilder.build(
+        let viewController = productDetailsModuleBuilder.build(
             input: ProductDetailsModuleInput(productID: productID, source: .catalog),
             output: self,
             productDetailsService: productDetailsService
