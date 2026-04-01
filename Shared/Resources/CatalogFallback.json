@@ -1,0 +1,149 @@
+{
+  "title": "Swift Market",
+  "greeting_prefix": "Здравствуйте",
+  "cart_items_count": 0,
+  "categories": [
+    {
+      "id": "groceries",
+      "title": "Продукты"
+    },
+    {
+      "id": "home",
+      "title": "Для дома"
+    },
+    {
+      "id": "electronics",
+      "title": "Электроника"
+    },
+    {
+      "id": "beauty",
+      "title": "Красота"
+    },
+    {
+      "id": "sport",
+      "title": "Спорт"
+    }
+  ],
+  "products": [
+    {
+      "id": "coffee",
+      "category_id": "groceries",
+      "title": "Кофе в зернах",
+      "subtitle": "1 кг, арабика",
+      "price": {
+        "amount": "1790",
+        "currency_code": "RUB"
+      },
+      "badge_text": "Хит",
+      "image_name": "Image"
+    },
+    {
+      "id": "cookies",
+      "category_id": "groceries",
+      "title": "Овсяное печенье",
+      "subtitle": "450 г, без пальмового масла",
+      "price": {
+        "amount": "290",
+        "currency_code": "RUB"
+      },
+      "badge_text": "Новинка",
+      "image_name": "Image"
+    },
+    {
+      "id": "lamp",
+      "category_id": "home",
+      "title": "Настольная лампа",
+      "subtitle": "Теплый свет, LED",
+      "price": {
+        "amount": "2490",
+        "currency_code": "RUB"
+      },
+      "badge_text": null,
+      "image_name": "Image"
+    },
+    {
+      "id": "storage-box",
+      "category_id": "home",
+      "title": "Короб для хранения",
+      "subtitle": "Тканевый, складной",
+      "price": {
+        "amount": "890",
+        "currency_code": "RUB"
+      },
+      "badge_text": "Скидка",
+      "image_name": "Image"
+    },
+    {
+      "id": "headphones",
+      "category_id": "electronics",
+      "title": "Беспроводные наушники",
+      "subtitle": "Шумоподавление, Bluetooth 5.3",
+      "price": {
+        "amount": "7990",
+        "currency_code": "RUB"
+      },
+      "badge_text": "Топ",
+      "image_name": "Image"
+    },
+    {
+      "id": "charger",
+      "category_id": "electronics",
+      "title": "Сетевое зарядное устройство",
+      "subtitle": "65W, USB-C",
+      "price": {
+        "amount": "1990",
+        "currency_code": "RUB"
+      },
+      "badge_text": null,
+      "image_name": "Image"
+    },
+    {
+      "id": "serum",
+      "category_id": "beauty",
+      "title": "Сыворотка для лица",
+      "subtitle": "Ниацинамид 10%, 30 мл",
+      "price": {
+        "amount": "1290",
+        "currency_code": "RUB"
+      },
+      "badge_text": "Уход",
+      "image_name": "Image"
+    },
+    {
+      "id": "perfume",
+      "category_id": "beauty",
+      "title": "Парфюмированный мист",
+      "subtitle": "Цитрус и белый чай",
+      "price": {
+        "amount": "1590",
+        "currency_code": "RUB"
+      },
+      "badge_text": "Лимит",
+      "image_name": "Image"
+    },
+    {
+      "id": "yoga-mat",
+      "category_id": "sport",
+      "title": "Коврик для йоги",
+      "subtitle": "6 мм, нескользящий",
+      "price": {
+        "amount": "2190",
+        "currency_code": "RUB"
+      },
+      "badge_text": "Фитнес",
+      "image_name": "Image"
+    },
+    {
+      "id": "bottle",
+      "category_id": "sport",
+      "title": "Термобутылка",
+      "subtitle": "750 мл, сталь",
+      "price": {
+        "amount": "1490",
+        "currency_code": "RUB"
+      },
+      "badge_text": "Выбор",
+      "image_name": "Image"
+    }
+  ]
+}
