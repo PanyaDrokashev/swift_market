@@ -6,7 +6,7 @@ struct CatalogModuleInput: Equatable {
 }
 
 enum CatalogViewState: Equatable {
-    case initial(CatalogScreenViewModel)
+    case idle(CatalogScreenViewModel)
     case loading(CatalogScreenViewModel)
     case content(CatalogScreenViewModel)
     case empty(CatalogScreenViewModel)
