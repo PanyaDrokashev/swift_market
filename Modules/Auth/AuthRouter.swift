@@ -1,0 +1,9 @@
+import Foundation
+
+final class AuthRouterImpl: AuthRouter {
+    weak var output: AuthModuleOutput?
+
+    func openCatalog(with session: UserSession) {
+        output?.authModuleDidAuthenticate(session)
+    }
+}

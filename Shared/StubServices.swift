@@ -18,7 +18,10 @@ final class InMemorySessionStorage: SessionStorage {
 
 struct StubAuthRepository: AuthRepository {
     func login(request: LoginRequest) async throws -> UserSession {
-        guard !request.email.isEmpty, !request.password.isEmpty else {
+        guard
+            request.email == DemoCredentials.email,
+            request.password == DemoCredentials.password
+        else {
             throw MarketError.invalidCredentials
         }
 
@@ -104,6 +107,11 @@ struct StubAuthService: AuthService {
         sessionStorage.save(session: session)
         return session
     }
+}
+
+enum DemoCredentials {
+    static let email = "test@mail.ru"
+    static let password = "password"
 }
 
 struct StubCatalogService: CatalogService {
