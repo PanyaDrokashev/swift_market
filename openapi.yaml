@@ -1,0 +1,132 @@
+openapi: 3.0.3
+info:
+  title: Alfa ITMO Echo Server API
+  version: 1.0.0
+  description: |
+    Echo API для сохранения и чтения JSON по произвольному пути.
+    Сервис доступен по HTTPS.
+servers:
+  - url: https://alfaitmo.ru
+    description: Production
+paths:
+  /server/echo/{echoPath}:
+    parameters:
+      - name: echoPath
+        in: path
+        required: true
+        description: |
+          Путь ключа. Для вложенных путей используйте URL encoding,
+          например `foo/bar` -> `foo%2Fbar`.
+        schema:
+          type: string
+    get:
+      summary: Получить последнюю версию JSON по пути
+      operationId: getEchoByPath
+      responses:
+        '200':
+          description: JSON найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EchoPayload'
+        '404':
+          description: Для пути нет сохраненных значений
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Сохранить новую версию JSON
+      operationId: postEchoByPath
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EchoPayload'
+      responses:
+        '201':
+          description: Сохранено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EchoPayload'
+        '500':
+          description: Внутренняя ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Сохранить новую версию JSON
+      operationId: putEchoByPath
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EchoPayload'
+      responses:
+        '201':
+          description: Сохранено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EchoPayload'
+        '500':
+          description: Внутренняя ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      summary: Сохранить новую версию JSON
+      operationId: patchEchoByPath
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EchoPayload'
+      responses:
+        '201':
+          description: Сохранено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EchoPayload'
+        '500':
+          description: Внутренняя ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    EchoPayload:
+      nullable: true
+      oneOf:
+        - type: object
+          additionalProperties: true
+        - type: array
+          items: {}
+        - type: string
+        - type: number
+        - type: integer
+        - type: boolean
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+        - code
+        - message

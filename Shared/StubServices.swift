@@ -61,6 +61,8 @@ struct StubCatalogRepository: CatalogRepository {
         ]
 
         return CatalogContent(
+            title: "Swift Market",
+            greetingPrefix: "Здравствуйте",
             categories: categories,
             selectedCategoryID: categoryID ?? categories.first?.id,
             products: products,
