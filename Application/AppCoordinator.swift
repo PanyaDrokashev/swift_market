@@ -13,7 +13,7 @@ final class AppCoordinator {
         navigationController: UINavigationController = UINavigationController(),
         authService: AuthService = StubAuthService(),
         catalogService: CatalogService = RemoteCatalogService(),
-        productDetailsService: ProductDetailsService = StubProductDetailsService(),
+        productDetailsService: ProductDetailsService = RemoteProductDetailsService(),
         authModuleBuilder: AuthModuleBuilding = AuthModuleBuilder(),
         catalogModuleBuilder: CatalogModuleBuilding = CatalogModuleBuilder(),
         productDetailsModuleBuilder: ProductDetailsModuleBuilding = ProductDetailsModuleBuilder()

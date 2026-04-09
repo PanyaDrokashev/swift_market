@@ -35,7 +35,21 @@
         "currency_code": "RUB"
       },
       "badge_text": "Хит",
-      "image_name": "Image"
+      "image_name": "Image",
+      "info": [
+        {
+          "name": "Вес",
+          "value": "1 кг"
+        },
+        {
+          "name": "Сорт",
+          "value": "Арабика"
+        },
+        {
+          "name": "Обжарка",
+          "value": "Средняя"
+        }
+      ]
     },
     {
       "id": "cookies",
@@ -47,7 +61,21 @@
         "currency_code": "RUB"
       },
       "badge_text": "Новинка",
-      "image_name": "Image"
+      "image_name": "Image",
+      "info": [
+        {
+          "name": "Вес",
+          "value": "450 г"
+        },
+        {
+          "name": "Тип",
+          "value": "Овсяное"
+        },
+        {
+          "name": "Особенность",
+          "value": "Без пальмового масла"
+        }
+      ]
     },
     {
       "id": "lamp",
@@ -59,7 +87,21 @@
         "currency_code": "RUB"
       },
       "badge_text": null,
-      "image_name": "Image"
+      "image_name": "Image",
+      "info": [
+        {
+          "name": "Тип",
+          "value": "LED"
+        },
+        {
+          "name": "Цвет света",
+          "value": "Теплый"
+        },
+        {
+          "name": "Питание",
+          "value": "220В"
+        }
+      ]
     },
     {
       "id": "storage-box",
@@ -71,7 +113,21 @@
         "currency_code": "RUB"
       },
       "badge_text": "Скидка",
-      "image_name": "Image"
+      "image_name": "Image",
+      "info": [
+        {
+          "name": "Материал",
+          "value": "Ткань"
+        },
+        {
+          "name": "Формат",
+          "value": "Складной"
+        },
+        {
+          "name": "Назначение",
+          "value": "Хранение вещей"
+        }
+      ]
     },
     {
       "id": "headphones",
@@ -83,7 +139,21 @@
         "currency_code": "RUB"
       },
       "badge_text": "Топ",
-      "image_name": "Image"
+      "image_name": "Image",
+      "info": [
+        {
+          "name": "Подключение",
+          "value": "Bluetooth 5.3"
+        },
+        {
+          "name": "Функция",
+          "value": "Шумоподавление"
+        },
+        {
+          "name": "Время работы",
+          "value": "До 30 часов"
+        }
+      ]
     },
     {
       "id": "charger",
@@ -95,7 +165,21 @@
         "currency_code": "RUB"
       },
       "badge_text": null,
-      "image_name": "Image"
+      "image_name": "Image",
+      "info": [
+        {
+          "name": "Мощность",
+          "value": "65W"
+        },
+        {
+          "name": "Разъем",
+          "value": "USB-C"
+        },
+        {
+          "name": "Режим",
+          "value": "Быстрая зарядка"
+        }
+      ]
     },
     {
       "id": "serum",
@@ -107,7 +191,21 @@
         "currency_code": "RUB"
       },
       "badge_text": "Уход",
-      "image_name": "Image"
+      "image_name": "Image",
+      "info": [
+        {
+          "name": "Объем",
+          "value": "30 мл"
+        },
+        {
+          "name": "Актив",
+          "value": "Ниацинамид 10%"
+        },
+        {
+          "name": "Тип кожи",
+          "value": "Для всех типов"
+        }
+      ]
     },
     {
       "id": "perfume",
@@ -119,7 +217,21 @@
         "currency_code": "RUB"
       },
       "badge_text": "Лимит",
-      "image_name": "Image"
+      "image_name": "Image",
+      "info": [
+        {
+          "name": "Аромат",
+          "value": "Цитрус и белый чай"
+        },
+        {
+          "name": "Объем",
+          "value": "150 мл"
+        },
+        {
+          "name": "Формат",
+          "value": "Спрей-мист"
+        }
+      ]
     },
     {
       "id": "yoga-mat",
@@ -131,7 +243,21 @@
         "currency_code": "RUB"
       },
       "badge_text": "Фитнес",
-      "image_name": "Image"
+      "image_name": "Image",
+      "info": [
+        {
+          "name": "Толщина",
+          "value": "6 мм"
+        },
+        {
+          "name": "Покрытие",
+          "value": "Нескользящее"
+        },
+        {
+          "name": "Назначение",
+          "value": "Йога и фитнес"
+        }
+      ]
     },
     {
       "id": "bottle",
@@ -143,7 +269,21 @@
         "currency_code": "RUB"
       },
       "badge_text": "Выбор",
-      "image_name": "Image"
+      "image_name": "Image",
+      "info": [
+        {
+          "name": "Объем",
+          "value": "750 мл"
+        },
+        {
+          "name": "Материал",
+          "value": "Нержавеющая сталь"
+        },
+        {
+          "name": "Тип",
+          "value": "Термобутылка"
+        }
+      ]
     }
   ]
 }

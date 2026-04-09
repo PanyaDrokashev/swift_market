@@ -2,12 +2,16 @@ import Foundation
 
 @MainActor
 final class CatalogPresenter: CatalogPresenterProtocol {
+    static let allCategoryID: CategoryID = "__all__"
+
     private weak var view: CatalogView?
     private let input: CatalogModuleInput
     private let router: CatalogRouter
     private let catalogService: CatalogService
     private var loadTask: Task<Void, Never>?
     private var selectedCategoryID: CategoryID?
+    private var searchQuery = ""
+    private var lastResponse: CatalogResponseDTO?
     private var lastViewModel: CatalogScreenViewModel
 
     init(
@@ -48,6 +52,28 @@ final class CatalogPresenter: CatalogPresenterProtocol {
         router.openProductDetails(productID: productID)
     }
 
+    func didUpdateSearchQuery(_ query: String) {
+        searchQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let lastResponse else { return }
+
+        do {
+            let viewModel = try makeViewModel(
+                response: lastResponse,
+                selectedCategoryID: selectedCategoryID
+            )
+            lastViewModel = viewModel
+            if viewModel.products.isEmpty {
+                view?.render(.empty(viewModel))
+            } else {
+                view?.render(.content(viewModel))
+            }
+        } catch let error as MarketError {
+            view?.render(.error(lastViewModel, message: error.catalogMessage))
+        } catch {
+            view?.render(.error(lastViewModel, message: "Не удалось применить поиск"))
+        }
+    }
+
     func didTapLogout() {
         router.openAuth()
     }
@@ -61,13 +87,11 @@ final class CatalogPresenter: CatalogPresenterProtocol {
         loadTask = Task { [weak self] in
             guard let self else { return }
             do {
-                let content = try await catalogService.loadCatalog(
-                    session: input.session,
-                    categoryID: selectedCategoryID
-                )
-                let viewModel = makeViewModel(content: content)
+                let response = try await catalogService.loadCatalog(session: input.session)
+                self.lastResponse = response
+                let viewModel = try makeViewModel(response: response, selectedCategoryID: selectedCategoryID)
                 self.lastViewModel = viewModel
-                if content.products.isEmpty {
+                if viewModel.products.isEmpty {
                     self.view?.render(.empty(viewModel))
                 } else {
                     self.view?.render(.content(viewModel))
@@ -129,16 +153,19 @@ final class CatalogPresenter: CatalogPresenterProtocol {
 
     private func resolveSelectedCategoryID(
         selectedCategoryID: CategoryID?,
-        categories: [ProductCategory]
+        categories: [CatalogResponseDTO.CategoryDTO]
     ) -> CategoryID? {
+        if selectedCategoryID == Self.allCategoryID {
+            return Self.allCategoryID
+        }
         if let selectedCategoryID, categories.contains(where: { $0.id == selectedCategoryID }) {
             return selectedCategoryID
         }
-        return categories.first?.id
+        return Self.allCategoryID
     }
 
     private func makeCategories(
-        categories: [ProductCategory],
+        categories: [CatalogResponseDTO.CategoryDTO],
         selectedCategoryID: CategoryID?
     ) -> [CatalogCategoryViewModel] {
         let resolvedCategoryID = resolveSelectedCategoryID(
@@ -153,36 +180,102 @@ final class CatalogPresenter: CatalogPresenterProtocol {
                 isSelected: $0.id == resolvedCategoryID
             )
         }
+        .insertingAllCategory(isSelected: resolvedCategoryID == Self.allCategoryID)
     }
 
-    private func makeProducts(_ products: [ProductListItem]) -> [CatalogProductCardViewModel] {
-        products.map {
-            CatalogProductCardViewModel(
-                id: $0.id,
-                title: $0.title,
-                subtitle: $0.subtitle,
-                priceText: formattedPrice($0.price),
-                badgeText: $0.badgeText
+    private func makeProducts(
+        _ products: [CatalogResponseDTO.ProductDTO],
+        selectedCategoryID: CategoryID?
+    ) throws -> [CatalogProductCardViewModel] {
+        let normalizedQuery = searchQuery.folding(
+            options: [.diacriticInsensitive, .caseInsensitive],
+            locale: .current
+        )
+
+        var viewModels: [CatalogProductCardViewModel] = []
+        viewModels.reserveCapacity(products.count)
+
+        for product in products {
+            let isAllCategory = selectedCategoryID == nil || selectedCategoryID == Self.allCategoryID
+            guard isAllCategory || product.categoryID == selectedCategoryID else {
+                continue
+            }
+            guard normalizedQuery.isEmpty || Self.matchesSearchQuery(query: normalizedQuery, product: product) else {
+                continue
+            }
+
+            viewModels.append(
+                CatalogProductCardViewModel(
+                    id: product.id,
+                    title: product.title,
+                    subtitle: product.subtitle,
+                    priceText: formattedPrice(
+                        Money(
+                            amount: try Self.makeDecimal(from: product.price.amount),
+                            currencyCode: product.price.currencyCode
+                        )
+                    ),
+                    badgeText: product.badgeText
+                )
             )
         }
+
+        return viewModels
     }
 
-    private func makeViewModel(content: CatalogContent) -> CatalogScreenViewModel {
+    private func makeViewModel(
+        response: CatalogResponseDTO,
+        selectedCategoryID: CategoryID?
+    ) throws -> CatalogScreenViewModel {
         let resolvedCategoryID = resolveSelectedCategoryID(
-            selectedCategoryID: content.selectedCategoryID,
-            categories: content.categories
+            selectedCategoryID: selectedCategoryID,
+            categories: response.categories
         )
         self.selectedCategoryID = resolvedCategoryID
 
         return CatalogScreenViewModel(
-            title: content.title,
-            greeting: makeGreeting(prefix: content.greetingPrefix),
+            title: response.title,
+            greeting: makeGreeting(prefix: response.greetingPrefix),
             categories: makeCategories(
-                categories: content.categories,
+                categories: response.categories,
                 selectedCategoryID: resolvedCategoryID
             ),
-            products: makeProducts(content.products),
-            cartBadge: content.cartItemsCount > 0 ? "\(content.cartItemsCount)" : nil
+            products: try makeProducts(
+                response.products,
+                selectedCategoryID: resolvedCategoryID
+            ),
+            cartBadge: response.cartItemsCount > 0 ? "\(response.cartItemsCount)" : nil
         )
+    }
+
+    private static func makeDecimal(from value: String) throws -> Decimal {
+        guard let amount = Decimal(string: value, locale: Locale(identifier: "en_US_POSIX")) else {
+            throw MarketError.decodingFailed
+        }
+        return amount
+    }
+
+    private static func matchesSearchQuery(
+        query: String,
+        product: CatalogResponseDTO.ProductDTO
+    ) -> Bool {
+        let searchableText = [product.title, product.subtitle, product.badgeText]
+            .compactMap { $0?.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current) }
+            .joined(separator: " ")
+        return searchableText.contains(query)
+    }
+}
+
+private extension Array where Element == CatalogCategoryViewModel {
+    func insertingAllCategory(isSelected: Bool) -> [CatalogCategoryViewModel] {
+        var result: [CatalogCategoryViewModel] = [
+            CatalogCategoryViewModel(
+                id: CatalogPresenter.allCategoryID,
+                title: "Все",
+                isSelected: isSelected
+            )
+        ]
+        result.append(contentsOf: self)
+        return result
     }
 }

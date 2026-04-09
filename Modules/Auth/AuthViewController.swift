@@ -3,16 +3,16 @@ import UIKit
 final class AuthViewController: UIViewController, AuthView {
     private var presenter: AuthPresenterProtocol
     private let emailValidator: AuthEmailValidating
-    private let scrollView = UIScrollView()
-    private let contentView = UIView()
-    private let stackView = UIStackView()
-    private let titleLabel = UILabel()
-    private let subtitleLabel = UILabel()
-    private let emailTextField = UITextField()
-    private let passwordTextField = UITextField()
-    private let errorLabel = UILabel()
-    private let loginButton = UIButton(type: .system)
-    private let activityIndicator = UIActivityIndicatorView(style: .medium)
+    private lazy var scrollView = UIScrollView()
+    private lazy var contentView = UIView()
+    private lazy var stackView = UIStackView()
+    private lazy var titleLabel = UILabel()
+    private lazy var subtitleLabel = UILabel()
+    private lazy var emailTextField = UITextField()
+    private lazy var passwordTextField = UITextField()
+    private lazy var errorLabel = UILabel()
+    private lazy var loginButton = UIButton(type: .system)
+    private lazy var activityIndicator = UIActivityIndicatorView(style: .medium)
     private var keyboardObserver: NSObjectProtocol?
     private var serviceErrorMessage: String?
     private var isLoading = false

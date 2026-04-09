@@ -5,7 +5,7 @@ protocol AuthRepository {
 }
 
 protocol CatalogRepository {
-    func fetchCatalog(session: UserSession, categoryID: CategoryID?) async throws -> CatalogContent
+    func fetchCatalog(session: UserSession) async throws -> CatalogResponseDTO
 }
 
 protocol ProductRepository {

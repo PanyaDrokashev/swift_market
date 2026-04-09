@@ -26,5 +26,6 @@ private final class CatalogPresenterPlaceholder: CatalogPresenterProtocol {
     func didPullToRefresh() {}
     func didSelectCategory(_ categoryID: CategoryID) {}
     func didSelectProduct(_ productID: ProductID) {}
+    func didUpdateSearchQuery(_ query: String) {}
     func didTapLogout() {}
 }

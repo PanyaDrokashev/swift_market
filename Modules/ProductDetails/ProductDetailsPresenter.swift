@@ -61,6 +61,8 @@ final class ProductDetailsPresenter: ProductDetailsPresenterProtocol {
             return "Осталось мало: \(quantity)"
         case .outOfStock:
             return "Нет в наличии"
+        case .unknown:
+            return ""
         }
     }
 

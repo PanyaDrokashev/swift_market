@@ -34,39 +34,46 @@ struct StubAuthRepository: AuthRepository {
 }
 
 struct StubCatalogRepository: CatalogRepository {
-    func fetchCatalog(session: UserSession, categoryID: CategoryID?) async throws -> CatalogContent {
-        let categories = [
-            ProductCategory(id: "groceries", title: "Продукты"),
-            ProductCategory(id: "home", title: "Для дома"),
-            ProductCategory(id: "electronics", title: "Электроника")
-        ]
-
-        let products = [
-            ProductListItem(
-                id: "coffee",
-                title: "Кофе в зернах",
-                subtitle: "1 кг, арабика",
-                price: Money(amount: Decimal(string: "1790") ?? 0, currencyCode: "RUB"),
-                badgeText: "Хит",
-                imageName: "Image"
-            ),
-            ProductListItem(
-                id: "lamp",
-                title: "Настольная лампа",
-                subtitle: "Теплый свет, LED",
-                price: Money(amount: Decimal(string: "2490") ?? 0, currencyCode: "RUB"),
-                badgeText: nil,
-                imageName: "Image"
-            )
-        ]
-
-        return CatalogContent(
+    func fetchCatalog(session: UserSession) async throws -> CatalogResponseDTO {
+        CatalogResponseDTO(
             title: "Swift Market",
             greetingPrefix: "Здравствуйте",
-            categories: categories,
-            selectedCategoryID: categoryID ?? categories.first?.id,
-            products: products,
-            cartItemsCount: 2
+            cartItemsCount: 2,
+            categories: [
+                CatalogResponseDTO.CategoryDTO(id: "groceries", title: "Продукты"),
+                CatalogResponseDTO.CategoryDTO(id: "home", title: "Для дома"),
+                CatalogResponseDTO.CategoryDTO(id: "electronics", title: "Электроника")
+            ],
+            products: [
+                CatalogResponseDTO.ProductDTO(
+                    id: "coffee",
+                    categoryID: "groceries",
+                    title: "Кофе в зернах",
+                    subtitle: "1 кг, арабика",
+                    price: CatalogResponseDTO.PriceDTO(amount: "1790", currencyCode: "RUB"),
+                    badgeText: "Хит",
+                    imageName: "Image",
+                    info: [
+                        CatalogResponseDTO.InfoDTO(name: "Вес", value: "1 кг"),
+                        CatalogResponseDTO.InfoDTO(name: "Сорт", value: "Арабика"),
+                        CatalogResponseDTO.InfoDTO(name: "Обжарка", value: "Средняя")
+                    ]
+                ),
+                CatalogResponseDTO.ProductDTO(
+                    id: "lamp",
+                    categoryID: "home",
+                    title: "Настольная лампа",
+                    subtitle: "Теплый свет, LED",
+                    price: CatalogResponseDTO.PriceDTO(amount: "2490", currencyCode: "RUB"),
+                    badgeText: nil,
+                    imageName: "Image",
+                    info: [
+                        CatalogResponseDTO.InfoDTO(name: "Тип", value: "LED"),
+                        CatalogResponseDTO.InfoDTO(name: "Цвет света", value: "Теплый"),
+                        CatalogResponseDTO.InfoDTO(name: "Питание", value: "220В")
+                    ]
+                )
+            ]
         )
     }
 }
@@ -123,8 +130,8 @@ struct StubCatalogService: CatalogService {
         self.repository = repository
     }
 
-    func loadCatalog(session: UserSession, categoryID: CategoryID?) async throws -> CatalogContent {
-        try await repository.fetchCatalog(session: session, categoryID: categoryID)
+    func loadCatalog(session: UserSession) async throws -> CatalogResponseDTO {
+        try await repository.fetchCatalog(session: session)
     }
 }
 
