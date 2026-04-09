@@ -12,8 +12,8 @@ final class ProductDetailsViewController: UIViewController, ProductDetailsView {
     private lazy var scrollView = UIScrollView()
     private lazy var contentView = UIView()
     private lazy var stackView = UIStackView()
-    private lazy var imagePlaceholderContainer = UIView()
-    private lazy var imagePlaceholderView = UIView()
+    private lazy var imageContainer = UIView()
+    private lazy var productImageView = UIImageView()
     private lazy var titleLabel = UILabel()
     private lazy var priceLabel = UILabel()
     private lazy var stockLabel = UILabel()
@@ -25,6 +25,9 @@ final class ProductDetailsViewController: UIViewController, ProductDetailsView {
     private lazy var statusLabel = UILabel()
     private lazy var loadingIndicator = UIActivityIndicatorView(style: .large)
     private lazy var retryButton = UIButton(type: .system)
+    private lazy var imageLoadingIndicator = UIActivityIndicatorView(style: .medium)
+    private var imageLoadTask: Task<Void, Never>?
+    private var currentImageURLString: String?
 
     init(presenter: ProductDetailsPresenterProtocol) {
         self.presenter = presenter
@@ -73,12 +76,17 @@ final class ProductDetailsViewController: UIViewController, ProductDetailsView {
         stackView.spacing = 12
         stackView.alignment = .fill
 
-        imagePlaceholderContainer.translatesAutoresizingMaskIntoConstraints = false
-        imagePlaceholderView.backgroundColor = .systemGray5
-        imagePlaceholderView.layer.cornerRadius = 12
-        imagePlaceholderView.translatesAutoresizingMaskIntoConstraints = false
-        imagePlaceholderView.widthAnchor.constraint(equalToConstant: 120).isActive = true
-        imagePlaceholderView.heightAnchor.constraint(equalTo: imagePlaceholderView.widthAnchor).isActive = true
+        imageContainer.translatesAutoresizingMaskIntoConstraints = false
+        imageContainer.backgroundColor = .systemGray6
+        imageContainer.layer.cornerRadius = 12
+        imageContainer.clipsToBounds = true
+
+        productImageView.translatesAutoresizingMaskIntoConstraints = false
+        productImageView.contentMode = .scaleAspectFill
+        productImageView.clipsToBounds = true
+
+        imageLoadingIndicator.translatesAutoresizingMaskIntoConstraints = false
+        imageLoadingIndicator.hidesWhenStopped = true
 
         titleLabel.font = UIFont.systemFont(ofSize: 24, weight: .bold)
         titleLabel.numberOfLines = 0
@@ -118,8 +126,9 @@ final class ProductDetailsViewController: UIViewController, ProductDetailsView {
         [titleLabel, priceLabel, stockLabel, descriptionLabel, deliveryLabel, pickupLabel, attributesTitleLabel, attributesStackView, statusLabel, retryButton].forEach {
             stackView.addArrangedSubview($0)
         }
-        stackView.insertArrangedSubview(imagePlaceholderContainer, at: 0)
-        imagePlaceholderContainer.addSubview(imagePlaceholderView)
+        stackView.insertArrangedSubview(imageContainer, at: 0)
+        imageContainer.addSubview(productImageView)
+        imageContainer.addSubview(imageLoadingIndicator)
 
         let guide = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
@@ -139,9 +148,15 @@ final class ProductDetailsViewController: UIViewController, ProductDetailsView {
             stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -24),
 
-            imagePlaceholderView.topAnchor.constraint(equalTo: imagePlaceholderContainer.topAnchor),
-            imagePlaceholderView.leadingAnchor.constraint(equalTo: imagePlaceholderContainer.leadingAnchor),
-            imagePlaceholderView.bottomAnchor.constraint(equalTo: imagePlaceholderContainer.bottomAnchor),
+            imageContainer.heightAnchor.constraint(equalToConstant: 200),
+
+            productImageView.topAnchor.constraint(equalTo: imageContainer.topAnchor),
+            productImageView.leadingAnchor.constraint(equalTo: imageContainer.leadingAnchor),
+            productImageView.trailingAnchor.constraint(equalTo: imageContainer.trailingAnchor),
+            productImageView.bottomAnchor.constraint(equalTo: imageContainer.bottomAnchor),
+
+            imageLoadingIndicator.centerXAnchor.constraint(equalTo: imageContainer.centerXAnchor),
+            imageLoadingIndicator.centerYAnchor.constraint(equalTo: imageContainer.centerYAnchor),
 
             loadingIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             loadingIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
@@ -195,6 +210,7 @@ final class ProductDetailsViewController: UIViewController, ProductDetailsView {
         let hasAttributes = !viewModel.attributes.isEmpty
         attributesTitleLabel.isHidden = !hasAttributes
         attributesStackView.isHidden = !hasAttributes
+        updateImage(urlString: viewModel.imageURLString)
 
         statusLabel.text = errorMessage
         statusLabel.isHidden = errorMessage == nil
@@ -204,6 +220,37 @@ final class ProductDetailsViewController: UIViewController, ProductDetailsView {
             loadingIndicator.startAnimating()
         } else {
             loadingIndicator.stopAnimating()
+        }
+    }
+
+    private func updateImage(urlString: String?) {
+        guard currentImageURLString != urlString else { return }
+        currentImageURLString = urlString
+        productImageView.image = nil
+        imageLoadTask?.cancel()
+
+        guard let urlString, let url = URL(string: urlString) else {
+            imageLoadingIndicator.stopAnimating()
+            return
+        }
+
+        imageLoadingIndicator.startAnimating()
+
+        imageLoadTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                guard !Task.isCancelled, let image = UIImage(data: data) else { return }
+                await MainActor.run {
+                    guard self.currentImageURLString == urlString else { return }
+                    self.productImageView.image = image
+                    self.imageLoadingIndicator.stopAnimating()
+                }
+            } catch {
+                await MainActor.run {
+                    self.imageLoadingIndicator.stopAnimating()
+                }
+            }
         }
     }
 
@@ -248,5 +295,9 @@ final class ProductDetailsViewController: UIViewController, ProductDetailsView {
     @objc
     private func didTapRetry() {
         presenter.didLoad()
+    }
+
+    deinit {
+        imageLoadTask?.cancel()
     }
 }

@@ -49,7 +49,8 @@ final class ProductDetailsPresenter: ProductDetailsPresenterProtocol {
             deliveryText: details.deliveryInfo.estimatedDateText,
             pickupText: details.deliveryInfo.pickupText,
             attributes: details.attributes.map { ProductAttributeViewModel(title: $0.title, value: $0.value) },
-            imageNames: details.imageNames
+            imageNames: details.imageNames,
+            imageURLString: resolveImageURLString(from: details.imageNames)
         )
     }
 
@@ -75,7 +76,18 @@ final class ProductDetailsPresenter: ProductDetailsPresenterProtocol {
             deliveryText: "",
             pickupText: "",
             attributes: [],
-            imageNames: []
+            imageNames: [],
+            imageURLString: nil
         )
+    }
+
+    private func resolveImageURLString(from imageNames: [String]) -> String? {
+        if let first = imageNames.first,
+           let url = URL(string: first),
+           let scheme = url.scheme,
+           !scheme.isEmpty {
+            return first
+        }
+        return nil
     }
 }

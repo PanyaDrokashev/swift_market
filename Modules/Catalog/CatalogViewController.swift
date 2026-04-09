@@ -18,13 +18,9 @@ final class CatalogViewController: UIViewController, CatalogView {
     private lazy var categoriesStackView = UIStackView()
     private lazy var productsTitleLabel = UILabel()
     private lazy var productsTableView = UITableView(frame: .zero, style: .plain)
-    private lazy var statusLabel = UILabel()
-    private lazy var logoutButton = UIButton(type: .system)
+    private lazy var logoutButton = DSButton(style: .destructive)
     private lazy var refreshControl = UIRefreshControl()
-    private lazy var stateContainer = UIStackView()
-    private lazy var stateActivityIndicator = UIActivityIndicatorView(style: .large)
-    private lazy var stateLabel = UILabel()
-    private lazy var retryButton = UIButton(type: .system)
+    private lazy var stateView = DSStateView()
     private lazy var searchController = UISearchController(searchResultsController: nil)
     private lazy var listManager: CatalogProductsListManager = {
         let manager = CatalogProductsListManager()
@@ -59,58 +55,58 @@ final class CatalogViewController: UIViewController, CatalogView {
     func render(_ state: CatalogViewState) {
         switch state {
         case .idle(let viewModel):
-            apply(viewModel: viewModel, screenState: .idle, statusText: nil, isError: false)
+            apply(viewModel: viewModel, screenState: .idle, statusText: nil)
         case .loading(let viewModel):
             apply(
                 viewModel: viewModel,
                 screenState: .loading,
-                statusText: "Обновляем каталог...",
-                isError: false
+                statusText: "Обновляем каталог..."
             )
         case .content(let viewModel):
-            apply(viewModel: viewModel, screenState: .content, statusText: nil, isError: false)
+            apply(viewModel: viewModel, screenState: .content, statusText: nil)
         case .empty(let viewModel):
             apply(
                 viewModel: viewModel,
                 screenState: .empty,
-                statusText: "Список товаров пуст",
-                isError: false
+                statusText: "В этой категории пока нет товаров"
             )
         case .error(let viewModel, let message):
-            apply(viewModel: viewModel, screenState: .error, statusText: message, isError: true)
+            apply(viewModel: viewModel, screenState: .error, statusText: message)
         }
     }
 
     private func configureAppearance() {
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = DS.Colors.background
         navigationItem.hidesBackButton = true
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationItem.searchController = searchController
         navigationItem.hidesSearchBarWhenScrolling = false
 
-        greetingLabel.font = .preferredFont(forTextStyle: .subheadline)
-        greetingLabel.textColor = .secondaryLabel
+        greetingLabel.font = DS.Typography.body()
+        greetingLabel.textColor = DS.Colors.textSecondary
         greetingLabel.numberOfLines = 0
         greetingLabel.adjustsFontForContentSizeCategory = true
 
-        titleLabel.font = UIFont.systemFont(ofSize: 28, weight: .bold)
-        titleLabel.textColor = .label
+        titleLabel.font = DS.Typography.title()
+        titleLabel.textColor = DS.Colors.textPrimary
         titleLabel.numberOfLines = 0
         titleLabel.adjustsFontForContentSizeCategory = true
 
-        cartInfoLabel.font = .preferredFont(forTextStyle: .caption1)
-        cartInfoLabel.textColor = .secondaryLabel
+        cartInfoLabel.font = DS.Typography.caption()
+        cartInfoLabel.textColor = DS.Colors.textSecondary
         cartInfoLabel.adjustsFontForContentSizeCategory = true
 
-        categoriesTitleLabel.font = .preferredFont(forTextStyle: .headline)
+        categoriesTitleLabel.font = DS.Typography.heading()
+        categoriesTitleLabel.textColor = DS.Colors.textPrimary
         categoriesTitleLabel.text = "Категории"
 
         categoriesScrollView.showsHorizontalScrollIndicator = false
         categoriesStackView.axis = .horizontal
-        categoriesStackView.spacing = 12
+        categoriesStackView.spacing = DS.Spacing.s
         categoriesStackView.translatesAutoresizingMaskIntoConstraints = false
 
-        productsTitleLabel.font = .preferredFont(forTextStyle: .headline)
+        productsTitleLabel.font = DS.Typography.heading()
+        productsTitleLabel.textColor = DS.Colors.textPrimary
         productsTitleLabel.text = "Товары"
 
         productsTableView.backgroundColor = .clear
@@ -118,34 +114,12 @@ final class CatalogViewController: UIViewController, CatalogView {
         productsTableView.allowsSelection = true
         productsTableView.refreshControl = refreshControl
 
-        statusLabel.font = .preferredFont(forTextStyle: .footnote)
-        statusLabel.textColor = .secondaryLabel
-        statusLabel.numberOfLines = 0
-        statusLabel.adjustsFontForContentSizeCategory = true
-
-        logoutButton.configuration = .bordered()
-        logoutButton.configuration?.title = "Выйти"
-        logoutButton.configuration?.baseForegroundColor = UIColor(red: 0.64, green: 0.14, blue: 0.12, alpha: 1)
+        logoutButton.setTitle("Выйти")
         logoutButton.addTarget(self, action: #selector(didTapLogout), for: .touchUpInside)
 
-        stateContainer.axis = .vertical
-        stateContainer.spacing = 12
-        stateContainer.alignment = .center
-        stateContainer.layoutMargins = UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16)
-        stateContainer.isLayoutMarginsRelativeArrangement = true
-        stateContainer.backgroundColor = UIColor.white.withAlphaComponent(0.95)
-        stateContainer.layer.cornerRadius = 16
-        stateContainer.isHidden = true
-
-        stateLabel.font = .preferredFont(forTextStyle: .body)
-        stateLabel.textColor = .secondaryLabel
-        stateLabel.textAlignment = .center
-        stateLabel.numberOfLines = 0
-
-        retryButton.configuration = .filled()
-        retryButton.configuration?.title = "Повторить"
-        retryButton.isHidden = true
-        retryButton.addTarget(self, action: #selector(didTapRetry), for: .touchUpInside)
+        stateView.onRetry = { [weak self] in
+            self?.presenter.didPullToRefresh()
+        }
 
         searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
@@ -168,9 +142,8 @@ final class CatalogViewController: UIViewController, CatalogView {
             categoriesStackView,
             productsTitleLabel,
             productsTableView,
-            statusLabel,
             logoutButton,
-            stateContainer
+            stateView
         ].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
@@ -183,33 +156,30 @@ final class CatalogViewController: UIViewController, CatalogView {
         categoriesScrollView.addSubview(categoriesStackView)
         view.addSubview(productsTitleLabel)
         view.addSubview(productsTableView)
-        view.addSubview(statusLabel)
+        view.addSubview(stateView)
         view.addSubview(logoutButton)
-        view.addSubview(stateContainer)
-
-        stateContainer.addArrangedSubview(stateActivityIndicator)
-        stateContainer.addArrangedSubview(stateLabel)
-        stateContainer.addArrangedSubview(retryButton)
 
         categoriesScrollView.heightAnchor.constraint(equalToConstant: 38).isActive = true
+        logoutButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 120).isActive = true
 
         NSLayoutConstraint.activate([
-            greetingLabel.topAnchor.constraint(equalTo: guide.topAnchor, constant: 6),
-            greetingLabel.leadingAnchor.constraint(equalTo: guide.leadingAnchor, constant: 16),
-            greetingLabel.trailingAnchor.constraint(equalTo: guide.trailingAnchor, constant: -16),
-            titleLabel.topAnchor.constraint(equalTo: greetingLabel.bottomAnchor, constant: 8),
-            titleLabel.leadingAnchor.constraint(equalTo: greetingLabel.leadingAnchor),
-            titleLabel.trailingAnchor.constraint(equalTo: greetingLabel.trailingAnchor),
+            greetingLabel.topAnchor.constraint(equalTo: guide.topAnchor, constant: DS.Spacing.xs),
+            greetingLabel.leadingAnchor.constraint(equalTo: guide.leadingAnchor, constant: DS.Spacing.m),
+            greetingLabel.trailingAnchor.constraint(equalTo: guide.trailingAnchor, constant: -DS.Spacing.m),
 
-            cartInfoLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
+            titleLabel.topAnchor.constraint(equalTo: greetingLabel.bottomAnchor, constant: DS.Spacing.xs),
+            titleLabel.leadingAnchor.constraint(equalTo: greetingLabel.leadingAnchor),
+            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: logoutButton.leadingAnchor, constant: -DS.Spacing.s),
+
+            cartInfoLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: DS.Spacing.xxs),
             cartInfoLabel.leadingAnchor.constraint(equalTo: greetingLabel.leadingAnchor),
             cartInfoLabel.trailingAnchor.constraint(equalTo: greetingLabel.trailingAnchor),
 
-            categoriesTitleLabel.topAnchor.constraint(equalTo: cartInfoLabel.bottomAnchor, constant: 16),
+            categoriesTitleLabel.topAnchor.constraint(equalTo: cartInfoLabel.bottomAnchor, constant: DS.Spacing.m),
             categoriesTitleLabel.leadingAnchor.constraint(equalTo: greetingLabel.leadingAnchor),
             categoriesTitleLabel.trailingAnchor.constraint(equalTo: greetingLabel.trailingAnchor),
 
-            categoriesScrollView.topAnchor.constraint(equalTo: categoriesTitleLabel.bottomAnchor, constant: 10),
+            categoriesScrollView.topAnchor.constraint(equalTo: categoriesTitleLabel.bottomAnchor, constant: DS.Spacing.xs),
             categoriesScrollView.leadingAnchor.constraint(equalTo: greetingLabel.leadingAnchor),
             categoriesScrollView.trailingAnchor.constraint(equalTo: greetingLabel.trailingAnchor),
 
@@ -219,37 +189,30 @@ final class CatalogViewController: UIViewController, CatalogView {
             categoriesStackView.bottomAnchor.constraint(equalTo: categoriesScrollView.contentLayoutGuide.bottomAnchor),
             categoriesStackView.heightAnchor.constraint(equalTo: categoriesScrollView.frameLayoutGuide.heightAnchor),
 
-            productsTitleLabel.topAnchor.constraint(equalTo: categoriesScrollView.bottomAnchor, constant: 20),
+            productsTitleLabel.topAnchor.constraint(equalTo: categoriesScrollView.bottomAnchor, constant: DS.Spacing.l),
             productsTitleLabel.leadingAnchor.constraint(equalTo: greetingLabel.leadingAnchor),
             productsTitleLabel.trailingAnchor.constraint(equalTo: greetingLabel.trailingAnchor),
 
-            productsTableView.topAnchor.constraint(equalTo: productsTitleLabel.bottomAnchor, constant: 10),
+            productsTableView.topAnchor.constraint(equalTo: productsTitleLabel.bottomAnchor, constant: DS.Spacing.xs),
             productsTableView.leadingAnchor.constraint(equalTo: greetingLabel.leadingAnchor),
             productsTableView.trailingAnchor.constraint(equalTo: greetingLabel.trailingAnchor),
-
-            statusLabel.topAnchor.constraint(equalTo: productsTableView.bottomAnchor, constant: 8),
-            statusLabel.leadingAnchor.constraint(equalTo: greetingLabel.leadingAnchor),
-            statusLabel.trailingAnchor.constraint(equalTo: greetingLabel.trailingAnchor),
-
-            logoutButton.topAnchor.constraint(equalTo: statusLabel.bottomAnchor, constant: 12),
-            logoutButton.leadingAnchor.constraint(equalTo: greetingLabel.leadingAnchor),
-            logoutButton.bottomAnchor.constraint(equalTo: guide.bottomAnchor, constant: -16),
-
-            productsTableView.bottomAnchor.constraint(equalTo: statusLabel.topAnchor, constant: -8),
+            productsTableView.bottomAnchor.constraint(equalTo: guide.bottomAnchor, constant: -DS.Spacing.m),
             productsTableView.heightAnchor.constraint(greaterThanOrEqualToConstant: 120),
 
-            stateContainer.centerXAnchor.constraint(equalTo: productsTableView.centerXAnchor),
-            stateContainer.centerYAnchor.constraint(equalTo: productsTableView.centerYAnchor),
-            stateContainer.leadingAnchor.constraint(greaterThanOrEqualTo: productsTableView.leadingAnchor, constant: 24),
-            stateContainer.trailingAnchor.constraint(lessThanOrEqualTo: productsTableView.trailingAnchor, constant: -24)
+            logoutButton.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
+            logoutButton.trailingAnchor.constraint(equalTo: greetingLabel.trailingAnchor),
+
+            stateView.centerXAnchor.constraint(equalTo: productsTableView.centerXAnchor),
+            stateView.centerYAnchor.constraint(equalTo: productsTableView.centerYAnchor),
+            stateView.leadingAnchor.constraint(greaterThanOrEqualTo: productsTableView.leadingAnchor, constant: DS.Spacing.l),
+            stateView.trailingAnchor.constraint(lessThanOrEqualTo: productsTableView.trailingAnchor, constant: -DS.Spacing.l)
         ])
     }
 
     private func apply(
         viewModel: CatalogScreenViewModel,
         screenState: ScreenState,
-        statusText: String?,
-        isError: Bool
+        statusText: String?
     ) {
         greetingLabel.text = viewModel.greeting
         titleLabel.text = viewModel.title
@@ -262,34 +225,31 @@ final class CatalogViewController: UIViewController, CatalogView {
             hasItems: !viewModel.products.isEmpty,
             message: statusText
         )
-
-        statusLabel.text = statusText
-        statusLabel.textColor = isError ? .systemRed : .secondaryLabel
-        statusLabel.isHidden = statusText == nil || screenState == .content || screenState == .idle
         refreshControl.endRefreshing()
     }
 
     private func updateStateOverlay(for state: ScreenState, hasItems: Bool, message: String?) {
         switch state {
         case .loading:
-            stateContainer.isHidden = hasItems
-            stateLabel.text = message ?? "Загрузка..."
-            retryButton.isHidden = true
-            stateActivityIndicator.startAnimating()
+            stateView.render(
+                .loading(message: message ?? "Загрузка..."),
+                hidesWhenContentExists: hasItems
+            )
         case .empty:
-            stateContainer.isHidden = false
-            stateLabel.text = "В этой категории пока нет товаров"
-            retryButton.isHidden = true
-            stateActivityIndicator.stopAnimating()
+            stateView.render(
+                .empty(message: message ?? "Список товаров пуст"),
+                hidesWhenContentExists: false
+            )
         case .error:
-            stateContainer.isHidden = hasItems
-            stateLabel.text = message ?? "Не удалось загрузить каталог"
-            retryButton.isHidden = false
-            stateActivityIndicator.stopAnimating()
+            stateView.render(
+                .error(
+                    message: message ?? "Не удалось загрузить каталог",
+                    retryTitle: "Повторить"
+                ),
+                hidesWhenContentExists: hasItems
+            )
         case .idle, .content:
-            stateContainer.isHidden = true
-            retryButton.isHidden = true
-            stateActivityIndicator.stopAnimating()
+            stateView.render(.hidden)
         }
     }
 
@@ -337,17 +297,26 @@ final class CatalogViewController: UIViewController, CatalogView {
     private func applyCategoryStyle(_ button: UIButton, category: CatalogCategoryViewModel) {
         var configuration = UIButton.Configuration.filled()
         configuration.cornerStyle = .capsule
-        configuration.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)
+        configuration.contentInsets = NSDirectionalEdgeInsets(
+            top: DS.Spacing.xs,
+            leading: DS.Spacing.m,
+            bottom: DS.Spacing.xs,
+            trailing: DS.Spacing.m
+        )
         configuration.title = category.title
-        configuration.baseForegroundColor = category.isSelected ? .white : UIColor(red: 0.20, green: 0.28, blue: 0.40, alpha: 1)
-        configuration.baseBackgroundColor = category.isSelected
-            ? UIColor(red: 0.12, green: 0.35, blue: 0.64, alpha: 1)
-            : .white
+        configuration.baseForegroundColor = category.isSelected ? .white : DS.Colors.textPrimary
+        configuration.baseBackgroundColor = category.isSelected ? DS.Colors.primary : DS.Colors.card
+        configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
+            var updated = incoming
+            updated.font = DS.Typography.bodyMedium()
+            return updated
+        }
         button.configuration = configuration
-        button.layer.shadowColor = UIColor.black.cgColor
-        button.layer.shadowOpacity = category.isSelected ? 0.14 : 0.06
-        button.layer.shadowOffset = CGSize(width: 0, height: 8)
-        button.layer.shadowRadius = 16
+        button.layer.shadowOpacity = 0
+        button.layer.borderColor = DS.Colors.border.cgColor
+        button.layer.borderWidth = 1
+        button.layer.cornerRadius = 18
+        button.clipsToBounds = true
     }
 
     @objc
@@ -357,11 +326,6 @@ final class CatalogViewController: UIViewController, CatalogView {
 
     @objc
     private func didPullToRefresh() {
-        presenter.didPullToRefresh()
-    }
-
-    @objc
-    private func didTapRetry() {
         presenter.didPullToRefresh()
     }
 

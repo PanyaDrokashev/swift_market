@@ -26,8 +26,8 @@ final class CatalogPresenter: CatalogPresenterProtocol {
         self.catalogService = catalogService
         self.selectedCategoryID = input.selectedCategoryID
         self.lastViewModel = CatalogScreenViewModel(
-            title: "Каталог",
-            greeting: "Здравствуйте, \(input.session.displayName)",
+            title: input.session.displayName,
+            greeting: "Здравствуйте",
             categories: [],
             products: [],
             cartBadge: nil
@@ -147,8 +147,8 @@ final class CatalogPresenter: CatalogPresenterProtocol {
         }
     }
 
-    private func makeGreeting(prefix: String) -> String {
-        "\(prefix), \(input.session.displayName)"
+    private func makeGreeting() -> String {
+        "Здравствуйте"
     }
 
     private func resolveSelectedCategoryID(
@@ -234,8 +234,8 @@ final class CatalogPresenter: CatalogPresenterProtocol {
         self.selectedCategoryID = resolvedCategoryID
 
         return CatalogScreenViewModel(
-            title: response.title,
-            greeting: makeGreeting(prefix: response.greetingPrefix),
+            title: input.session.displayName,
+            greeting: makeGreeting(),
             categories: makeCategories(
                 categories: response.categories,
                 selectedCategoryID: resolvedCategoryID
