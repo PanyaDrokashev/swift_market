@@ -8,13 +8,26 @@ final class DSStateView: UIView {
         case error(message: String, retryTitle: String)
     }
 
+    struct Props {
+        let state: State
+        let hidesWhenContentExists: Bool
+
+        init(
+            state: State,
+            hidesWhenContentExists: Bool = false
+        ) {
+            self.state = state
+            self.hidesWhenContentExists = hidesWhenContentExists
+        }
+    }
+
     var onRetry: (() -> Void)?
 
     private let containerView = UIView()
     private let stackView = UIStackView()
     private let activityIndicator = UIActivityIndicatorView(style: .large)
     private let messageLabel = UILabel()
-    private let retryButton = DSButton(style: .secondary)
+    private let retryButton = DSButton()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -27,27 +40,35 @@ final class DSStateView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func render(_ state: State, hidesWhenContentExists: Bool = false) {
-        switch state {
+    func configure(_ props: Props) {
+        switch props.state {
         case .hidden:
             isHidden = true
             retryButton.isHidden = true
             activityIndicator.stopAnimating()
         case .loading(let message):
-            isHidden = hidesWhenContentExists
+            isHidden = props.hidesWhenContentExists
             messageLabel.text = message
             retryButton.isHidden = true
+            retryButton.configure(
+                .init(title: "", style: .secondary)
+            )
             activityIndicator.startAnimating()
         case .empty(let message):
             isHidden = false
             messageLabel.text = message
             retryButton.isHidden = true
+            retryButton.configure(
+                .init(title: "", style: .secondary)
+            )
             activityIndicator.stopAnimating()
         case .error(let message, let retryTitle):
-            isHidden = hidesWhenContentExists
+            isHidden = props.hidesWhenContentExists
             messageLabel.text = message
             retryButton.isHidden = false
-            retryButton.setTitle(retryTitle)
+            retryButton.configure(
+                .init(title: retryTitle, style: .secondary)
+            )
             activityIndicator.stopAnimating()
         }
     }
@@ -67,6 +88,9 @@ final class DSStateView: UIView {
         messageLabel.textAlignment = .center
         messageLabel.numberOfLines = 0
 
+        retryButton.configure(
+            .init(title: "", style: .secondary)
+        )
         retryButton.isHidden = true
         retryButton.addTarget(self, action: #selector(didTapRetry), for: .touchUpInside)
     }

@@ -18,7 +18,7 @@ final class CatalogViewController: UIViewController, CatalogView {
     private lazy var categoriesStackView = UIStackView()
     private lazy var productsTitleLabel = UILabel()
     private lazy var productsTableView = UITableView(frame: .zero, style: .plain)
-    private lazy var logoutButton = DSButton(style: .destructive)
+    private lazy var logoutButton = DSButton()
     private lazy var refreshControl = UIRefreshControl()
     private lazy var stateView = DSStateView()
     private lazy var searchController = UISearchController(searchResultsController: nil)
@@ -114,7 +114,9 @@ final class CatalogViewController: UIViewController, CatalogView {
         productsTableView.allowsSelection = true
         productsTableView.refreshControl = refreshControl
 
-        logoutButton.setTitle("Выйти")
+        logoutButton.configure(
+            .init(title: "Выйти", style: .destructive)
+        )
         logoutButton.addTarget(self, action: #selector(didTapLogout), for: .touchUpInside)
 
         stateView.onRetry = { [weak self] in
@@ -231,25 +233,31 @@ final class CatalogViewController: UIViewController, CatalogView {
     private func updateStateOverlay(for state: ScreenState, hasItems: Bool, message: String?) {
         switch state {
         case .loading:
-            stateView.render(
-                .loading(message: message ?? "Загрузка..."),
-                hidesWhenContentExists: hasItems
+            stateView.configure(
+                .init(
+                    state: .loading(message: message ?? "Загрузка..."),
+                    hidesWhenContentExists: hasItems
+                )
             )
         case .empty:
-            stateView.render(
-                .empty(message: message ?? "Список товаров пуст"),
-                hidesWhenContentExists: false
+            stateView.configure(
+                .init(
+                    state: .empty(message: message ?? "Список товаров пуст"),
+                    hidesWhenContentExists: false
+                )
             )
         case .error:
-            stateView.render(
-                .error(
-                    message: message ?? "Не удалось загрузить каталог",
-                    retryTitle: "Повторить"
-                ),
-                hidesWhenContentExists: hasItems
+            stateView.configure(
+                .init(
+                    state: .error(
+                        message: message ?? "Не удалось загрузить каталог",
+                        retryTitle: "Повторить"
+                    ),
+                    hidesWhenContentExists: hasItems
+                )
             )
         case .idle, .content:
-            stateView.render(.hidden)
+            stateView.configure(.init(state: .hidden))
         }
     }
 

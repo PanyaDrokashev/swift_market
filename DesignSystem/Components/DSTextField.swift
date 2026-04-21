@@ -1,14 +1,13 @@
 import UIKit
 
 final class DSTextField: UIView {
-    struct Configuration {
+    struct Content {
         let title: String
         let placeholder: String
         var textContentType: UITextContentType?
         var keyboardType: UIKeyboardType = .default
         var returnKeyType: UIReturnKeyType = .default
         var isSecureTextEntry: Bool = false
-        var accessibilityIdentifier: String?
 
         init(
             title: String,
@@ -16,8 +15,7 @@ final class DSTextField: UIView {
             textContentType: UITextContentType? = nil,
             keyboardType: UIKeyboardType = .default,
             returnKeyType: UIReturnKeyType = .default,
-            isSecureTextEntry: Bool = false,
-            accessibilityIdentifier: String? = nil
+            isSecureTextEntry: Bool = false
         ) {
             self.title = title
             self.placeholder = placeholder
@@ -25,7 +23,22 @@ final class DSTextField: UIView {
             self.keyboardType = keyboardType
             self.returnKeyType = returnKeyType
             self.isSecureTextEntry = isSecureTextEntry
-            self.accessibilityIdentifier = accessibilityIdentifier
+        }
+    }
+
+    struct Props {
+        let content: Content
+        let errorMessage: String?
+        let isEnabled: Bool
+
+        init(
+            content: Content,
+            errorMessage: String? = nil,
+            isEnabled: Bool = true
+        ) {
+            self.content = content
+            self.errorMessage = errorMessage
+            self.isEnabled = isEnabled
         }
     }
 
@@ -51,27 +64,22 @@ final class DSTextField: UIView {
         set { textField.text = newValue }
     }
 
-    func apply(_ configuration: Configuration) {
-        titleLabel.text = configuration.title
-        textField.placeholder = configuration.placeholder
-        textField.textContentType = configuration.textContentType
-        textField.keyboardType = configuration.keyboardType
-        textField.returnKeyType = configuration.returnKeyType
-        textField.isSecureTextEntry = configuration.isSecureTextEntry
-        textField.accessibilityIdentifier = configuration.accessibilityIdentifier
-    }
+    func configure(_ props: Props) {
+        titleLabel.text = props.content.title
+        textField.placeholder = props.content.placeholder
+        textField.textContentType = props.content.textContentType
+        textField.keyboardType = props.content.keyboardType
+        textField.returnKeyType = props.content.returnKeyType
+        textField.isSecureTextEntry = props.content.isSecureTextEntry
 
-    func setError(_ message: String?) {
-        errorLabel.text = message
-        errorLabel.isHidden = message == nil
-        let hasError = message != nil
+        errorLabel.text = props.errorMessage
+        errorLabel.isHidden = props.errorMessage == nil
+        let hasError = props.errorMessage != nil
         fieldContainer.layer.borderColor = hasError ? DS.Colors.error.cgColor : DS.Colors.border.cgColor
         fieldContainer.layer.borderWidth = hasError ? 1.2 : 1
-    }
 
-    func setEnabled(_ isEnabled: Bool) {
-        textField.isEnabled = isEnabled
-        alpha = isEnabled ? 1 : 0.7
+        textField.isEnabled = props.isEnabled
+        alpha = props.isEnabled ? 1 : 0.7
     }
 
     private func configureAppearance() {

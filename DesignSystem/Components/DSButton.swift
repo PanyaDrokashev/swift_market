@@ -7,16 +7,27 @@ final class DSButton: UIButton {
         case destructive
     }
 
-    private let style: Style
-    private var configuredTitle: String?
+    struct Props {
+        let title: String
+        let style: Style
+        let isEnabled: Bool
 
-    init(style: Style) {
-        self.style = style
+        init(
+            title: String,
+            style: Style,
+            isEnabled: Bool = true
+        ) {
+            self.title = title
+            self.style = style
+            self.isEnabled = isEnabled
+        }
+    }
+
+    override init(frame: CGRect) {
         super.init(frame: .zero)
         translatesAutoresizingMaskIntoConstraints = false
         heightAnchor.constraint(equalToConstant: 50).isActive = true
         titleLabel?.adjustsFontForContentSizeCategory = true
-        applyStyle()
     }
 
     @available(*, unavailable)
@@ -24,21 +35,10 @@ final class DSButton: UIButton {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override var isEnabled: Bool {
-        didSet {
-            applyStyle()
-        }
-    }
-
-    func setTitle(_ title: String) {
-        configuredTitle = title
-        applyStyle()
-    }
-
-    private func applyStyle() {
+    func configure(_ props: Props) {
         var configuration: UIButton.Configuration
 
-        switch style {
+        switch props.style {
         case .primary:
             configuration = .filled()
             configuration.baseBackgroundColor = DS.Colors.primary
@@ -53,7 +53,7 @@ final class DSButton: UIButton {
             configuration.baseBackgroundColor = DS.Colors.error.withAlphaComponent(0.08)
         }
 
-        configuration.title = configuredTitle
+        configuration.title = props.title
 
         configuration.cornerStyle = .fixed
         configuration.background.cornerRadius = DS.CornerRadius.button
@@ -63,11 +63,12 @@ final class DSButton: UIButton {
             return updated
         }
 
-        if !isEnabled {
+        if !props.isEnabled {
             configuration.baseBackgroundColor = configuration.baseBackgroundColor?.withAlphaComponent(0.45)
             configuration.baseForegroundColor = configuration.baseForegroundColor?.withAlphaComponent(0.6)
         }
 
+        super.isEnabled = props.isEnabled
         self.configuration = configuration
     }
 }
