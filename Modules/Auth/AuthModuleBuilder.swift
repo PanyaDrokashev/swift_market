@@ -11,14 +11,14 @@ final class AuthModuleBuilder: AuthModuleBuilding {
         let emailValidator = AuthEmailValidator()
 
         let viewController = AuthViewController(
-            presenter: AuthPresenterPlaceholder(),
-            emailValidator: emailValidator
+            presenter: AuthPresenterPlaceholder()
         )
         let presenter = AuthPresenter(
             view: viewController,
             input: input,
             router: router,
-            authService: authService
+            authService: authService,
+            emailValidator: emailValidator
         )
         viewController.inject(presenter: presenter)
         return viewController
@@ -27,5 +27,6 @@ final class AuthModuleBuilder: AuthModuleBuilding {
 
 private final class AuthPresenterPlaceholder: AuthPresenterProtocol {
     func didLoad() {}
+    func didChangeCredentials(email: String, password: String) {}
     func didTapLogin(email: String, password: String) {}
 }

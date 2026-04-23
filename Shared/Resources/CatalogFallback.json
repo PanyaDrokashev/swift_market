@@ -35,7 +35,7 @@
         "currency_code": "RUB"
       },
       "badge_text": "Хит",
-      "image_name": "Image",
+      "image_name": "https://placekittens.com/300/200",
       "info": [
         {
           "name": "Вес",
@@ -61,7 +61,7 @@
         "currency_code": "RUB"
       },
       "badge_text": "Новинка",
-      "image_name": "Image",
+      "image_name": "https://placekittens.com/300/200",
       "info": [
         {
           "name": "Вес",
@@ -87,7 +87,7 @@
         "currency_code": "RUB"
       },
       "badge_text": null,
-      "image_name": "Image",
+      "image_name": "https://placekittens.com/300/200",
       "info": [
         {
           "name": "Тип",
@@ -113,7 +113,7 @@
         "currency_code": "RUB"
       },
       "badge_text": "Скидка",
-      "image_name": "Image",
+      "image_name": "https://placekittens.com/300/200",
       "info": [
         {
           "name": "Материал",
@@ -139,7 +139,7 @@
         "currency_code": "RUB"
       },
       "badge_text": "Топ",
-      "image_name": "Image",
+      "image_name": "https://placekittens.com/300/200",
       "info": [
         {
           "name": "Подключение",
@@ -165,7 +165,7 @@
         "currency_code": "RUB"
       },
       "badge_text": null,
-      "image_name": "Image",
+      "image_name": "https://placekittens.com/300/200",
       "info": [
         {
           "name": "Мощность",
@@ -191,7 +191,7 @@
         "currency_code": "RUB"
       },
       "badge_text": "Уход",
-      "image_name": "Image",
+      "image_name": "https://placekittens.com/300/200",
       "info": [
         {
           "name": "Объем",
@@ -217,7 +217,7 @@
         "currency_code": "RUB"
       },
       "badge_text": "Лимит",
-      "image_name": "Image",
+      "image_name": "https://placekittens.com/300/200",
       "info": [
         {
           "name": "Аромат",
@@ -243,7 +243,7 @@
         "currency_code": "RUB"
       },
       "badge_text": "Фитнес",
-      "image_name": "Image",
+      "image_name": "https://placekittens.com/300/200",
       "info": [
         {
           "name": "Толщина",
@@ -269,7 +269,7 @@
         "currency_code": "RUB"
       },
       "badge_text": "Выбор",
-      "image_name": "Image",
+      "image_name": "https://placekittens.com/300/200",
       "info": [
         {
           "name": "Объем",

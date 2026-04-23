@@ -11,6 +11,43 @@
 - Для каталога данные идут по цепочке `NetworkClient -> CatalogRepository -> CatalogService -> CatalogPresenter`, DTO не попадают во view слой.
 - Список товаров реализован через `UITableView` + `CatalogProductsListManager`, поэтому `UIViewController` не содержит datasource/delegate и логику reuse.
 
+## Design System (Лабораторная 6)
+
+### Токены
+
+- `DS.Colors`: `background`, `surface`, `primary`, `secondary`, `textPrimary`, `textSecondary`, `error`, `border`, `card`, `accent`.
+- `DS.Typography`: `title`, `heading`, `body`, `bodyMedium`, `caption`, `footnote`, `price`.
+- `DS.Spacing`: `xxs/xs/s/m/l/xl`.
+- `DS.CornerRadius`: `field`, `card`, `button`.
+
+### Компоненты
+
+- `DSButton`: стили `primary/secondary/destructive`, единая типографика, поддержка disabled-состояния.
+- `DSTextField`: конфигурация через модель (`title`, `placeholder`, keyboard settings, secure), вывод ошибки под полем.
+- `DSStateView`: состояния `loading/error/empty/hidden`, retry callback без бизнес-логики.
+
+### Где применено
+
+- `AuthViewController`: типографика/цвета/отступы через DS, поля ввода заменены на `DSTextField`, кнопка входа на `DSButton`.
+- `CatalogViewController`: типографика/цвета/отступы через DS, кнопка выхода на `DSButton`, состояния списка через `DSStateView`.
+- `CatalogProductsListManager`: ячейка списка переведена на DS-токены для единообразного визуального стиля.
+
+### Где лежит дизайн-система
+
+- `DesignSystem/DS.swift`
+- `DesignSystem/Components/DSButton.swift`
+- `DesignSystem/Components/DSTextField.swift`
+- `DesignSystem/Components/DSStateView.swift`
+
+### Как проверить loading/error/empty
+
+- `loading`: открыть каталог или потянуть список вниз (`pull-to-refresh`) и увидеть `DSStateView` со спиннером.
+- `empty`: в каталоге выбрать категорию без товаров (например, `Электроника`) и увидеть `DSStateView` в состоянии empty.
+- `error`: временно отключить fallback в `RemoteCatalogRepository` (передать `fallbackLoader: nil`) и запустить экран без сети, чтобы получить `DSStateView` с retry.
+
+### Доп. Задание
+
+- Реализована смена темы (светлая/темная) в зависимости от настроек ОС
 
 ## Модули
 
@@ -143,6 +180,7 @@
 ## Структура проекта
 
 - `Application/` содержит `AppCoordinator`.
+- `DesignSystem/` содержит токены и переиспользуемые UI-компоненты.
 - `Modules/Auth/` содержит контракты и пустую сборку экрана авторизации.
 - `Modules/Catalog/` содержит контракты и пустую сборку каталога.
 - `Modules/ProductDetails/` содержит контракты и пустую сборку карточки товара.

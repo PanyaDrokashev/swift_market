@@ -10,6 +10,7 @@ protocol AuthView: AnyObject {
 
 protocol AuthPresenterProtocol {
     func didLoad()
+    func didChangeCredentials(email: String, password: String)
     func didTapLogin(email: String, password: String)
 }
 

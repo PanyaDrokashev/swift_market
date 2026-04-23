@@ -116,40 +116,47 @@ private final class CatalogProductTableViewCell: UITableViewCell {
 
     private func configureAppearance() {
         selectionStyle = .none
+        clipsToBounds = false
         backgroundColor = .clear
         contentView.backgroundColor = .clear
+        contentView.clipsToBounds = false
 
-        cardView.backgroundColor = .white
-        cardView.layer.cornerRadius = 24
+        cardView.backgroundColor = DS.Colors.card
+        cardView.layer.cornerRadius = DS.CornerRadius.card
         cardView.layer.shadowColor = UIColor.black.cgColor
         cardView.layer.shadowOpacity = 0.08
         cardView.layer.shadowOffset = CGSize(width: 0, height: 12)
         cardView.layer.shadowRadius = 18
 
-        accentView.backgroundColor = UIColor(red: 0.98, green: 0.66, blue: 0.29, alpha: 1)
-        accentView.layer.cornerRadius = 14
+        accentView.backgroundColor = DS.Colors.accent
+        accentView.layer.cornerRadius = DS.CornerRadius.button
 
-        titleLabel.font = UIFont.systemFont(ofSize: 20, weight: .semibold)
+        titleLabel.font = DS.Typography.heading()
+        titleLabel.textColor = DS.Colors.textPrimary
+        titleLabel.adjustsFontForContentSizeCategory = true
         titleLabel.numberOfLines = 2
 
-        subtitleLabel.font = UIFont.systemFont(ofSize: 14, weight: .regular)
-        subtitleLabel.textColor = .secondaryLabel
+        subtitleLabel.font = DS.Typography.caption()
+        subtitleLabel.textColor = DS.Colors.textSecondary
+        subtitleLabel.adjustsFontForContentSizeCategory = true
         subtitleLabel.numberOfLines = 0
 
-        priceLabel.font = UIFont.systemFont(ofSize: 19, weight: .bold)
-        priceLabel.textColor = UIColor(red: 0.08, green: 0.22, blue: 0.40, alpha: 1)
+        priceLabel.font = DS.Typography.price()
+        priceLabel.textColor = DS.Colors.primary
+        priceLabel.adjustsFontForContentSizeCategory = true
 
-        badgeLabel.font = UIFont.systemFont(ofSize: 12, weight: .semibold)
-        badgeLabel.textColor = UIColor(red: 0.55, green: 0.22, blue: 0.02, alpha: 1)
-        badgeLabel.backgroundColor = UIColor(red: 1.0, green: 0.94, blue: 0.84, alpha: 1)
-        badgeLabel.layer.cornerRadius = 12
+        badgeLabel.font = DS.Typography.footnote()
+        badgeLabel.textColor = DS.Colors.textPrimary
+        badgeLabel.backgroundColor = DS.Colors.secondary
+        badgeLabel.layer.cornerRadius = DS.CornerRadius.button
         badgeLabel.clipsToBounds = true
+        badgeLabel.adjustsFontForContentSizeCategory = true
         badgeLabel.isHidden = true
 
         arrowImageView.tintColor = .tertiaryLabel
 
         textStack.axis = .vertical
-        textStack.spacing = 8
+        textStack.spacing = DS.Spacing.xs
         textStack.alignment = .leading
     }
 
@@ -167,29 +174,34 @@ private final class CatalogProductTableViewCell: UITableViewCell {
         cardView.addSubview(arrowImageView)
 
         NSLayoutConstraint.activate([
-            cardView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
-            cardView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            cardView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            cardView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
+            cardView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: DS.Spacing.xs),
+            cardView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: DS.Spacing.xs),
+            cardView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -DS.Spacing.xs),
+            cardView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -DS.Spacing.xs),
 
-            accentView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 20),
-            accentView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 20),
+            accentView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: DS.Spacing.m),
+            accentView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: DS.Spacing.m),
             accentView.widthAnchor.constraint(equalToConstant: 28),
             accentView.heightAnchor.constraint(equalToConstant: 28),
 
-            textStack.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 20),
-            textStack.leadingAnchor.constraint(equalTo: accentView.trailingAnchor, constant: 14),
-            textStack.trailingAnchor.constraint(equalTo: arrowImageView.leadingAnchor, constant: -16),
-            textStack.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -20),
+            textStack.topAnchor.constraint(equalTo: cardView.topAnchor, constant: DS.Spacing.m),
+            textStack.leadingAnchor.constraint(equalTo: accentView.trailingAnchor, constant: DS.Spacing.s),
+            textStack.trailingAnchor.constraint(equalTo: arrowImageView.leadingAnchor, constant: -DS.Spacing.m),
+            textStack.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -DS.Spacing.m),
 
             arrowImageView.centerYAnchor.constraint(equalTo: cardView.centerYAnchor),
-            arrowImageView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -20)
+            arrowImageView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -DS.Spacing.m)
         ])
     }
 }
 
 private final class InsetLabel: UILabel {
-    private let insets = UIEdgeInsets(top: 6, left: 10, bottom: 6, right: 10)
+    private let insets = UIEdgeInsets(
+        top: DS.Spacing.xxs + 2,
+        left: DS.Spacing.s - 2,
+        bottom: DS.Spacing.xxs + 2,
+        right: DS.Spacing.s - 2
+    )
 
     override func drawText(in rect: CGRect) {
         super.drawText(in: rect.inset(by: insets))

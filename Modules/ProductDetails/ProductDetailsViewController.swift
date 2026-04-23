@@ -12,19 +12,25 @@ final class ProductDetailsViewController: UIViewController, ProductDetailsView {
     private lazy var scrollView = UIScrollView()
     private lazy var contentView = UIView()
     private lazy var stackView = UIStackView()
-    private lazy var imagePlaceholderContainer = UIView()
-    private lazy var imagePlaceholderView = UIView()
+    private lazy var imageContainer = UIView()
+    private lazy var productImageView = UIImageView()
     private lazy var titleLabel = UILabel()
     private lazy var priceLabel = UILabel()
     private lazy var stockLabel = UILabel()
     private lazy var descriptionLabel = UILabel()
+    private lazy var addToCartButton = DSButton()
+    private lazy var removeFromCartButton = DSButton()
     private lazy var deliveryLabel = UILabel()
     private lazy var pickupLabel = UILabel()
     private lazy var attributesTitleLabel = UILabel()
     private lazy var attributesStackView = UIStackView()
     private lazy var statusLabel = UILabel()
-    private lazy var loadingIndicator = UIActivityIndicatorView(style: .large)
-    private lazy var retryButton = UIButton(type: .system)
+    private lazy var stateView = DSStateView()
+    private lazy var retryButton = DSButton()
+    private lazy var imageLoadingIndicator = UIActivityIndicatorView(style: .medium)
+    private var imageLoadTask: Task<Void, Never>?
+    private var currentImageURLString: String?
+    private var isInCart = false
 
     init(presenter: ProductDetailsPresenterProtocol) {
         self.presenter = presenter
@@ -63,48 +69,81 @@ final class ProductDetailsViewController: UIViewController, ProductDetailsView {
     }
 
     private func configureAppearance() {
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = DS.Colors.background
 
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         contentView.translatesAutoresizingMaskIntoConstraints = false
         stackView.translatesAutoresizingMaskIntoConstraints = false
 
         stackView.axis = .vertical
-        stackView.spacing = 12
+        stackView.spacing = DS.Spacing.s
         stackView.alignment = .fill
 
-        imagePlaceholderContainer.translatesAutoresizingMaskIntoConstraints = false
-        imagePlaceholderView.backgroundColor = .systemGray5
-        imagePlaceholderView.layer.cornerRadius = 12
-        imagePlaceholderView.translatesAutoresizingMaskIntoConstraints = false
-        imagePlaceholderView.widthAnchor.constraint(equalToConstant: 120).isActive = true
-        imagePlaceholderView.heightAnchor.constraint(equalTo: imagePlaceholderView.widthAnchor).isActive = true
+        imageContainer.translatesAutoresizingMaskIntoConstraints = false
+        imageContainer.backgroundColor = DS.Colors.surface
+        imageContainer.layer.cornerRadius = DS.CornerRadius.card
+        imageContainer.clipsToBounds = true
 
-        titleLabel.font = UIFont.systemFont(ofSize: 24, weight: .bold)
+        productImageView.translatesAutoresizingMaskIntoConstraints = false
+        productImageView.contentMode = .scaleAspectFill
+        productImageView.clipsToBounds = true
+
+        imageLoadingIndicator.translatesAutoresizingMaskIntoConstraints = false
+        imageLoadingIndicator.hidesWhenStopped = true
+
+        titleLabel.font = DS.Typography.title()
+        titleLabel.textColor = DS.Colors.textPrimary
+        titleLabel.adjustsFontForContentSizeCategory = true
         titleLabel.numberOfLines = 0
-        priceLabel.font = UIFont.systemFont(ofSize: 22, weight: .semibold)
-        priceLabel.textColor = UIColor(red: 0.03, green: 0.41, blue: 0.81, alpha: 1)
-        stockLabel.font = .preferredFont(forTextStyle: .subheadline)
-        stockLabel.textColor = .secondaryLabel
-        descriptionLabel.font = .preferredFont(forTextStyle: .body)
+        priceLabel.font = DS.Typography.price()
+        priceLabel.textColor = DS.Colors.primary
+        priceLabel.adjustsFontForContentSizeCategory = true
+        stockLabel.font = DS.Typography.caption()
+        stockLabel.textColor = DS.Colors.textSecondary
+        stockLabel.adjustsFontForContentSizeCategory = true
+        descriptionLabel.font = DS.Typography.body()
+        descriptionLabel.textColor = DS.Colors.textPrimary
+        descriptionLabel.adjustsFontForContentSizeCategory = true
         descriptionLabel.numberOfLines = 0
-        deliveryLabel.font = .preferredFont(forTextStyle: .subheadline)
-        pickupLabel.font = .preferredFont(forTextStyle: .subheadline)
-        attributesTitleLabel.font = .preferredFont(forTextStyle: .headline)
+
+        addToCartButton.configure(
+            .init(title: "Добавить в корзину", style: .primary)
+        )
+        addToCartButton.addTarget(self, action: #selector(didTapAddToCart), for: .touchUpInside)
+        addToCartButton.isHidden = true
+
+        removeFromCartButton.configure(
+            .init(title: "Удалить из корзины", style: .destructive)
+        )
+        removeFromCartButton.addTarget(self, action: #selector(didTapRemoveFromCart), for: .touchUpInside)
+        removeFromCartButton.isHidden = true
+
+        deliveryLabel.font = DS.Typography.body()
+        deliveryLabel.textColor = DS.Colors.textSecondary
+        deliveryLabel.adjustsFontForContentSizeCategory = true
+        pickupLabel.font = DS.Typography.body()
+        pickupLabel.textColor = DS.Colors.textSecondary
+        pickupLabel.adjustsFontForContentSizeCategory = true
+        attributesTitleLabel.font = DS.Typography.heading()
+        attributesTitleLabel.textColor = DS.Colors.textPrimary
+        attributesTitleLabel.adjustsFontForContentSizeCategory = true
         attributesTitleLabel.text = "Характеристики"
         attributesStackView.axis = .vertical
-        attributesStackView.spacing = 8
+        attributesStackView.spacing = DS.Spacing.xs
 
-        statusLabel.font = .preferredFont(forTextStyle: .footnote)
-        statusLabel.textColor = .systemRed
+        statusLabel.font = DS.Typography.footnote()
+        statusLabel.textColor = DS.Colors.error
+        statusLabel.adjustsFontForContentSizeCategory = true
         statusLabel.numberOfLines = 0
         statusLabel.isHidden = true
 
-        loadingIndicator.hidesWhenStopped = true
-        loadingIndicator.translatesAutoresizingMaskIntoConstraints = false
+        stateView.onRetry = { [weak self] in
+            self?.presenter.didLoad()
+        }
 
-        retryButton.configuration = .filled()
-        retryButton.configuration?.title = "Повторить"
+        retryButton.configure(
+            .init(title: "Повторить", style: .secondary)
+        )
         retryButton.isHidden = true
         retryButton.addTarget(self, action: #selector(didTapRetry), for: .touchUpInside)
     }
@@ -113,20 +152,23 @@ final class ProductDetailsViewController: UIViewController, ProductDetailsView {
         view.addSubview(scrollView)
         scrollView.addSubview(contentView)
         contentView.addSubview(stackView)
-        view.addSubview(loadingIndicator)
+        view.addSubview(addToCartButton)
+        view.addSubview(removeFromCartButton)
+        view.addSubview(stateView)
 
         [titleLabel, priceLabel, stockLabel, descriptionLabel, deliveryLabel, pickupLabel, attributesTitleLabel, attributesStackView, statusLabel, retryButton].forEach {
             stackView.addArrangedSubview($0)
         }
-        stackView.insertArrangedSubview(imagePlaceholderContainer, at: 0)
-        imagePlaceholderContainer.addSubview(imagePlaceholderView)
+        stackView.insertArrangedSubview(imageContainer, at: 0)
+        imageContainer.addSubview(productImageView)
+        imageContainer.addSubview(imageLoadingIndicator)
 
         let guide = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: guide.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: guide.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: guide.trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: guide.bottomAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: addToCartButton.topAnchor, constant: -DS.Spacing.s),
 
             contentView.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
             contentView.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
@@ -134,17 +176,34 @@ final class ProductDetailsViewController: UIViewController, ProductDetailsView {
             contentView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
             contentView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
 
-            stackView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
-            stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -24),
+            stackView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: DS.Spacing.m),
+            stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: DS.Spacing.m),
+            stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -DS.Spacing.m),
+            stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -DS.Spacing.l),
 
-            imagePlaceholderView.topAnchor.constraint(equalTo: imagePlaceholderContainer.topAnchor),
-            imagePlaceholderView.leadingAnchor.constraint(equalTo: imagePlaceholderContainer.leadingAnchor),
-            imagePlaceholderView.bottomAnchor.constraint(equalTo: imagePlaceholderContainer.bottomAnchor),
+            imageContainer.heightAnchor.constraint(equalToConstant: 200),
 
-            loadingIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            loadingIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+            productImageView.topAnchor.constraint(equalTo: imageContainer.topAnchor),
+            productImageView.leadingAnchor.constraint(equalTo: imageContainer.leadingAnchor),
+            productImageView.trailingAnchor.constraint(equalTo: imageContainer.trailingAnchor),
+            productImageView.bottomAnchor.constraint(equalTo: imageContainer.bottomAnchor),
+
+            imageLoadingIndicator.centerXAnchor.constraint(equalTo: imageContainer.centerXAnchor),
+            imageLoadingIndicator.centerYAnchor.constraint(equalTo: imageContainer.centerYAnchor),
+
+            addToCartButton.leadingAnchor.constraint(equalTo: guide.leadingAnchor, constant: DS.Spacing.m),
+            addToCartButton.trailingAnchor.constraint(equalTo: guide.trailingAnchor, constant: -DS.Spacing.m),
+            addToCartButton.bottomAnchor.constraint(equalTo: guide.bottomAnchor, constant: -DS.Spacing.s),
+
+            removeFromCartButton.leadingAnchor.constraint(equalTo: addToCartButton.leadingAnchor),
+            removeFromCartButton.trailingAnchor.constraint(equalTo: addToCartButton.trailingAnchor),
+            removeFromCartButton.topAnchor.constraint(equalTo: addToCartButton.topAnchor),
+            removeFromCartButton.bottomAnchor.constraint(equalTo: addToCartButton.bottomAnchor),
+
+            stateView.centerXAnchor.constraint(equalTo: scrollView.centerXAnchor),
+            stateView.centerYAnchor.constraint(equalTo: scrollView.centerYAnchor),
+            stateView.leadingAnchor.constraint(greaterThanOrEqualTo: scrollView.leadingAnchor, constant: DS.Spacing.l),
+            stateView.trailingAnchor.constraint(lessThanOrEqualTo: scrollView.trailingAnchor, constant: -DS.Spacing.l)
         ])
     }
 
@@ -195,15 +254,53 @@ final class ProductDetailsViewController: UIViewController, ProductDetailsView {
         let hasAttributes = !viewModel.attributes.isEmpty
         attributesTitleLabel.isHidden = !hasAttributes
         attributesStackView.isHidden = !hasAttributes
+        updateImage(urlString: viewModel.imageURLString)
 
         statusLabel.text = errorMessage
         statusLabel.isHidden = errorMessage == nil
         retryButton.isHidden = screenState != .error
+        updateCartButtons(screenState: screenState)
+        updateStateOverlay(for: screenState)
+    }
 
-        if screenState == .loading {
-            loadingIndicator.startAnimating()
+    private func updateStateOverlay(for state: ScreenState) {
+        if state == .loading {
+            stateView.configure(
+                .init(state: .loading(message: "Загрузка карточки товара..."))
+            )
         } else {
-            loadingIndicator.stopAnimating()
+            stateView.configure(.init(state: .hidden))
+        }
+    }
+
+    private func updateImage(urlString: String?) {
+        guard currentImageURLString != urlString else { return }
+        currentImageURLString = urlString
+        productImageView.image = nil
+        imageLoadTask?.cancel()
+
+        guard let urlString, let url = URL(string: urlString) else {
+            imageLoadingIndicator.stopAnimating()
+            return
+        }
+
+        imageLoadingIndicator.startAnimating()
+
+        imageLoadTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                guard !Task.isCancelled, let image = UIImage(data: data) else { return }
+                await MainActor.run {
+                    guard self.currentImageURLString == urlString else { return }
+                    self.productImageView.image = image
+                    self.imageLoadingIndicator.stopAnimating()
+                }
+            } catch {
+                await MainActor.run {
+                    self.imageLoadingIndicator.stopAnimating()
+                }
+            }
         }
     }
 
@@ -212,12 +309,14 @@ final class ProductDetailsViewController: UIViewController, ProductDetailsView {
         let title = UILabel()
         let value = UILabel()
 
-        title.font = .preferredFont(forTextStyle: .footnote)
-        title.textColor = .secondaryLabel
+        title.font = DS.Typography.footnote()
+        title.textColor = DS.Colors.textSecondary
+        title.adjustsFontForContentSizeCategory = true
         title.text = attribute.title
 
-        value.font = .preferredFont(forTextStyle: .body)
-        value.textColor = .label
+        value.font = DS.Typography.body()
+        value.textColor = DS.Colors.textPrimary
+        value.adjustsFontForContentSizeCategory = true
         value.text = attribute.value
         value.numberOfLines = 0
 
@@ -231,7 +330,7 @@ final class ProductDetailsViewController: UIViewController, ProductDetailsView {
             title.leadingAnchor.constraint(equalTo: container.leadingAnchor),
             title.trailingAnchor.constraint(equalTo: container.trailingAnchor),
 
-            value.topAnchor.constraint(equalTo: title.bottomAnchor, constant: 2),
+            value.topAnchor.constraint(equalTo: title.bottomAnchor, constant: DS.Spacing.xxs),
             value.leadingAnchor.constraint(equalTo: container.leadingAnchor),
             value.trailingAnchor.constraint(equalTo: container.trailingAnchor),
             value.bottomAnchor.constraint(equalTo: container.bottomAnchor)
@@ -248,5 +347,27 @@ final class ProductDetailsViewController: UIViewController, ProductDetailsView {
     @objc
     private func didTapRetry() {
         presenter.didLoad()
+    }
+
+    @objc
+    private func didTapAddToCart() {
+        isInCart = true
+        updateCartButtons(screenState: .content)
+    }
+
+    @objc
+    private func didTapRemoveFromCart() {
+        isInCart = false
+        updateCartButtons(screenState: .content)
+    }
+
+    private func updateCartButtons(screenState: ScreenState) {
+        let shouldShowButtons = screenState == .content
+        addToCartButton.isHidden = !shouldShowButtons || isInCart
+        removeFromCartButton.isHidden = !shouldShowButtons || !isInCart
+    }
+
+    deinit {
+        imageLoadTask?.cancel()
     }
 }
