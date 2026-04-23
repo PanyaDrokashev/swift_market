@@ -7,7 +7,7 @@ struct RemoteCatalogService: CatalogService {
         self.repository = repository
     }
 
-    func loadCatalog(session: UserSession, categoryID: CategoryID?) async throws -> CatalogContent {
-        try await repository.fetchCatalog(session: session, categoryID: categoryID)
+    func loadCatalog(session: UserSession) async throws -> CatalogResponseDTO {
+        try await repository.fetchCatalog(session: session)
     }
 }

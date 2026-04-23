@@ -14,6 +14,7 @@ protocol CatalogPresenterProtocol {
     func didPullToRefresh()
     func didSelectCategory(_ categoryID: CategoryID)
     func didSelectProduct(_ productID: ProductID)
+    func didUpdateSearchQuery(_ query: String)
     func didTapLogout()
 }
 
@@ -23,7 +24,7 @@ protocol CatalogRouter {
 }
 
 protocol CatalogService {
-    func loadCatalog(session: UserSession, categoryID: CategoryID?) async throws -> CatalogContent
+    func loadCatalog(session: UserSession) async throws -> CatalogResponseDTO
 }
 
 protocol CatalogModuleBuilding {

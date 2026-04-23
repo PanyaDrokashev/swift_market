@@ -26,6 +26,7 @@ struct ProductDetailsScreenViewModel: Equatable {
     let pickupText: String
     let attributes: [ProductAttributeViewModel]
     let imageNames: [String]
+    let imageURLString: String?
 }
 
 struct ProductAttributeViewModel: Equatable {

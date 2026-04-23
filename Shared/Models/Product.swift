@@ -34,4 +34,5 @@ enum StockStatus: Equatable, Sendable {
     case inStock(quantity: Int)
     case lowStock(quantity: Int)
     case outOfStock
+    case unknown
 }

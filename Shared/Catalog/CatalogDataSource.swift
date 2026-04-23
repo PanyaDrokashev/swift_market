@@ -91,16 +91,14 @@ struct RemoteCatalogRepository: CatalogRepository {
         self.decoder = decoder
     }
 
-    func fetchCatalog(session: UserSession, categoryID: CategoryID?) async throws -> CatalogContent {
+    func fetchCatalog(session: UserSession) async throws -> CatalogResponseDTO {
         do {
             let response: CatalogResponseDTO = try await networkClient.get(
                 endpointProvider.catalogURL,
                 decoder: decoder
             )
             debugLog("DTO after decode: \(response)")
-            let content = try response.toDomain(selectedCategoryID: categoryID)
-            debugLog("Domain content: title=\(content.title), categories=\(content.categories.count), products=\(content.products.count), selectedCategoryID=\(content.selectedCategoryID ?? "nil")")
-            return content
+            return response
         } catch let error as MarketError {
             debugLog("Repository MarketError: \(error)")
             guard shouldUseFallback(for: error), let fallbackLoader else {
@@ -109,9 +107,7 @@ struct RemoteCatalogRepository: CatalogRepository {
             debugLog("Using fallback catalog")
             let response = try fallbackLoader.loadCatalog()
             debugLog("Fallback DTO: \(response)")
-            let content = try response.toDomain(selectedCategoryID: categoryID)
-            debugLog("Fallback domain content: title=\(content.title), categories=\(content.categories.count), products=\(content.products.count), selectedCategoryID=\(content.selectedCategoryID ?? "nil")")
-            return content
+            return response
         } catch {
             debugLog("Repository unknown error: \(error)")
             throw MarketError.unknown(message: error.localizedDescription)

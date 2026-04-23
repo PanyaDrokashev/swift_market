@@ -15,6 +15,9 @@ struct AuthInitialViewModel: Equatable {
     let title: String
     let subtitle: String
     let prefilledEmail: String?
+    let emailValidationMessage: String?
+    let serviceErrorMessage: String?
+    let isFieldsEnabled: Bool
     let isLoginEnabled: Bool
 }
 

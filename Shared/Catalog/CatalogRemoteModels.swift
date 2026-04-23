@@ -28,6 +28,7 @@ struct CatalogResponseDTO: Decodable, CustomStringConvertible {
         let price: PriceDTO
         let badgeText: String?
         let imageName: String?
+        let info: [InfoDTO]?
 
         enum CodingKeys: String, CodingKey {
             case id
@@ -37,7 +38,13 @@ struct CatalogResponseDTO: Decodable, CustomStringConvertible {
             case price
             case badgeText = "badge_text"
             case imageName = "image_name"
+            case info
         }
+    }
+
+    struct InfoDTO: Decodable {
+        let name: String
+        let value: String
     }
 
     struct PriceDTO: Decodable {
@@ -54,49 +61,5 @@ struct CatalogResponseDTO: Decodable, CustomStringConvertible {
         """
         CatalogResponseDTO(title: \(title), greetingPrefix: \(greetingPrefix), cartItemsCount: \(cartItemsCount), categories: \(categories.count), products: \(products.count))
         """
-    }
-}
-
-extension CatalogResponseDTO {
-    func toDomain(selectedCategoryID: CategoryID?) throws -> CatalogContent {
-        let domainCategories = categories.map {
-            ProductCategory(id: $0.id, title: $0.title)
-        }
-
-        let resolvedCategoryID = selectedCategoryID ?? domainCategories.first?.id
-        let filteredProducts = try products
-            .filter { product in
-                guard let resolvedCategoryID else { return true }
-                return product.categoryID == resolvedCategoryID
-            }
-            .map { product in
-                ProductListItem(
-                    id: product.id,
-                    title: product.title,
-                    subtitle: product.subtitle,
-                    price: Money(
-                        amount: try Self.makeDecimal(from: product.price.amount),
-                        currencyCode: product.price.currencyCode
-                    ),
-                    badgeText: product.badgeText,
-                    imageName: product.imageName
-                )
-            }
-
-        return CatalogContent(
-            title: title,
-            greetingPrefix: greetingPrefix,
-            categories: domainCategories,
-            selectedCategoryID: resolvedCategoryID,
-            products: filteredProducts,
-            cartItemsCount: cartItemsCount
-        )
-    }
-
-    private static func makeDecimal(from value: String) throws -> Decimal {
-        guard let amount = Decimal(string: value, locale: Locale(identifier: "en_US_POSIX")) else {
-            throw MarketError.decodingFailed
-        }
-        return amount
     }
 }
