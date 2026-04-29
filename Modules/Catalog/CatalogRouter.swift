@@ -10,4 +10,8 @@ final class CatalogRouterImpl: CatalogRouter {
     func openAuth() {
         output?.catalogModuleDidRequestLogout()
     }
+
+    func openBDUI(config: BDUIConfig) {
+        output?.catalogModuleDidRequestBDUI(config: config)
+    }
 }

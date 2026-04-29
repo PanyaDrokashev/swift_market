@@ -3,6 +3,7 @@ import UIKit
 protocol CatalogModuleOutput: AnyObject {
     func catalogModuleDidSelectProduct(_ productID: ProductID)
     func catalogModuleDidRequestLogout()
+    func catalogModuleDidRequestBDUI(config: BDUIConfig)
 }
 
 protocol CatalogView: AnyObject {
@@ -16,11 +17,13 @@ protocol CatalogPresenterProtocol {
     func didSelectProduct(_ productID: ProductID)
     func didUpdateSearchQuery(_ query: String)
     func didTapLogout()
+    func didTapOpenBDUI()
 }
 
 protocol CatalogRouter {
     func openProductDetails(productID: ProductID)
     func openAuth()
+    func openBDUI(config: BDUIConfig)
 }
 
 protocol CatalogService {

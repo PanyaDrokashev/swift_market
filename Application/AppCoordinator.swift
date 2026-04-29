@@ -5,26 +5,32 @@ final class AppCoordinator {
     private let authService: AuthService
     private let catalogService: CatalogService
     private let productDetailsService: ProductDetailsService
+    private let bduiService: BDUIService
     private let authModuleBuilder: AuthModuleBuilding
     private let catalogModuleBuilder: CatalogModuleBuilding
     private let productDetailsModuleBuilder: ProductDetailsModuleBuilding
+    private let bduiModuleBuilder: BDUIModuleBuilding
 
     init(
         navigationController: UINavigationController = UINavigationController(),
         authService: AuthService = StubAuthService(),
         catalogService: CatalogService = RemoteCatalogService(),
         productDetailsService: ProductDetailsService = RemoteProductDetailsService(),
+        bduiService: BDUIService = RemoteBDUIService(),
         authModuleBuilder: AuthModuleBuilding = AuthModuleBuilder(),
         catalogModuleBuilder: CatalogModuleBuilding = CatalogModuleBuilder(),
-        productDetailsModuleBuilder: ProductDetailsModuleBuilding = ProductDetailsModuleBuilder()
+        productDetailsModuleBuilder: ProductDetailsModuleBuilding = ProductDetailsModuleBuilder(),
+        bduiModuleBuilder: BDUIModuleBuilding = BDUIModuleBuilder()
     ) {
         self.navigationController = navigationController
         self.authService = authService
         self.catalogService = catalogService
         self.productDetailsService = productDetailsService
+        self.bduiService = bduiService
         self.authModuleBuilder = authModuleBuilder
         self.catalogModuleBuilder = catalogModuleBuilder
         self.productDetailsModuleBuilder = productDetailsModuleBuilder
+        self.bduiModuleBuilder = bduiModuleBuilder
     }
 
     var rootViewController: UIViewController {
@@ -61,11 +67,24 @@ final class AppCoordinator {
         )
         navigationController.pushViewController(viewController, animated: true)
     }
+
+    private func showBDUI(config: BDUIConfig) {
+        let viewController = bduiModuleBuilder.build(
+            input: BDUIModuleInput(config: config),
+            output: self,
+            service: bduiService
+        )
+        navigationController.pushViewController(viewController, animated: true)
+    }
 }
 
 extension AppCoordinator: AuthModuleOutput {
     func authModuleDidAuthenticate(_ session: UserSession) {
         showCatalog(session: session)
+    }
+
+    func authModuleDidRequestBDUI(config: BDUIConfig) {
+        showBDUI(config: config)
     }
 }
 
@@ -77,10 +96,24 @@ extension AppCoordinator: CatalogModuleOutput {
     func catalogModuleDidRequestLogout() {
         showAuth()
     }
+
+    func catalogModuleDidRequestBDUI(config: BDUIConfig) {
+        showBDUI(config: config)
+    }
 }
 
 extension AppCoordinator: ProductDetailsModuleOutput {
     func productDetailsModuleDidFinish() {
         navigationController.popViewController(animated: true)
+    }
+
+    func productDetailsModuleDidRequestBDUI(config: BDUIConfig) {
+        showBDUI(config: config)
+    }
+}
+
+extension AppCoordinator: BDUIModuleOutput {
+    func bduiModuleDidRequestOpen(config: BDUIConfig) {
+        showBDUI(config: config)
     }
 }

@@ -6,4 +6,8 @@ final class AuthRouterImpl: AuthRouter {
     func openCatalog(with session: UserSession) {
         output?.authModuleDidAuthenticate(session)
     }
+
+    func openBDUI(config: BDUIConfig) {
+        output?.authModuleDidRequestBDUI(config: config)
+    }
 }

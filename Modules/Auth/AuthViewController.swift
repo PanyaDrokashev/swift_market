@@ -46,6 +46,7 @@ final class AuthViewController: UIViewController, AuthView {
         configureAppearance()
         setupLayout()
         setupActions()
+        setupNavigation()
         setupKeyboardObserver()
         presenter.didLoad()
     }
@@ -173,6 +174,15 @@ final class AuthViewController: UIViewController, AuthView {
         passwordField.textField.addTarget(self, action: #selector(textFieldsDidChange), for: .editingChanged)
     }
 
+    private func setupNavigation() {
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            title: "BDUI",
+            style: .plain,
+            target: self,
+            action: #selector(didTapOpenBDUI)
+        )
+    }
+
     private func setupKeyboardObserver() {
         keyboardObserver = NotificationCenter.default.addObserver(
             forName: UIResponder.keyboardWillChangeFrameNotification,
@@ -255,6 +265,11 @@ final class AuthViewController: UIViewController, AuthView {
     @objc
     private func didTapLogin() {
         submitLogin()
+    }
+
+    @objc
+    private func didTapOpenBDUI() {
+        presenter.didTapOpenBDUI()
     }
 
     @objc

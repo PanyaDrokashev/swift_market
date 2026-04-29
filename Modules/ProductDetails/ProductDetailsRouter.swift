@@ -6,4 +6,8 @@ final class ProductDetailsRouterImpl: ProductDetailsRouter {
     func close() {
         output?.productDetailsModuleDidFinish()
     }
+
+    func openBDUI(config: BDUIConfig) {
+        output?.productDetailsModuleDidRequestBDUI(config: config)
+    }
 }

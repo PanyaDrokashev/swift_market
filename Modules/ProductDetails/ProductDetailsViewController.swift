@@ -214,6 +214,12 @@ final class ProductDetailsViewController: UIViewController, ProductDetailsView {
             target: self,
             action: #selector(didTapBack)
         )
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            title: "BDUI",
+            style: .plain,
+            target: self,
+            action: #selector(didTapOpenBDUI)
+        )
     }
 
     private func apply(
@@ -347,6 +353,11 @@ final class ProductDetailsViewController: UIViewController, ProductDetailsView {
     @objc
     private func didTapRetry() {
         presenter.didLoad()
+    }
+
+    @objc
+    private func didTapOpenBDUI() {
+        presenter.didTapOpenBDUI()
     }
 
     @objc

@@ -40,6 +40,16 @@ final class ProductDetailsPresenter: ProductDetailsPresenterProtocol {
         router.close()
     }
 
+    func didTapOpenBDUI() {
+        router.openBDUI(
+            config: BDUIConfig(
+                title: "BDUI Product",
+                endpoint: "https://alfaitmo.ru/server/echo/409409",
+                key: "swift-market/product"
+            )
+        )
+    }
+
     private func makeViewModel(details: ProductDetails) -> ProductDetailsScreenViewModel {
         ProductDetailsScreenViewModel(
             title: details.title,

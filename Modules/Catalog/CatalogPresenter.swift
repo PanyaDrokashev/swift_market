@@ -78,6 +78,16 @@ final class CatalogPresenter: CatalogPresenterProtocol {
         router.openAuth()
     }
 
+    func didTapOpenBDUI() {
+        router.openBDUI(
+            config: BDUIConfig(
+                title: "BDUI Catalog",
+                endpoint: "https://alfaitmo.ru/server/echo/409409",
+                key: "swift-market/catalog"
+            )
+        )
+    }
+
     private func loadCatalog(selectedCategoryID: CategoryID?) {
         loadTask?.cancel()
         let loadingViewModel = makeLoadingViewModel(selectedCategoryID: selectedCategoryID)
