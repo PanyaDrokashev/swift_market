@@ -28,4 +28,5 @@ private final class CatalogPresenterPlaceholder: CatalogPresenterProtocol {
     func didSelectProduct(_ productID: ProductID) {}
     func didUpdateSearchQuery(_ query: String) {}
     func didTapLogout() {}
+    func didTapOpenBDUI() {}
 }

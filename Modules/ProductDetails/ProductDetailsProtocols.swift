@@ -2,6 +2,7 @@ import UIKit
 
 protocol ProductDetailsModuleOutput: AnyObject {
     func productDetailsModuleDidFinish()
+    func productDetailsModuleDidRequestBDUI(config: BDUIConfig)
 }
 
 protocol ProductDetailsView: AnyObject {
@@ -11,10 +12,12 @@ protocol ProductDetailsView: AnyObject {
 protocol ProductDetailsPresenterProtocol {
     func didLoad()
     func didTapBack()
+    func didTapOpenBDUI()
 }
 
 protocol ProductDetailsRouter {
     func close()
+    func openBDUI(config: BDUIConfig)
 }
 
 protocol ProductDetailsService {

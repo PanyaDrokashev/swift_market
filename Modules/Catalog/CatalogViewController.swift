@@ -79,6 +79,12 @@ final class CatalogViewController: UIViewController, CatalogView {
         view.backgroundColor = DS.Colors.background
         navigationItem.hidesBackButton = true
         navigationController?.navigationBar.prefersLargeTitles = true
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            title: "BDUI",
+            style: .plain,
+            target: self,
+            action: #selector(didTapOpenBDUI)
+        )
         navigationItem.searchController = searchController
         navigationItem.hidesSearchBarWhenScrolling = false
 
@@ -341,6 +347,11 @@ final class CatalogViewController: UIViewController, CatalogView {
     private func didTapCategory(_ sender: UIButton) {
         guard let categoryID = sender.accessibilityIdentifier else { return }
         presenter.didSelectCategory(categoryID)
+    }
+
+    @objc
+    private func didTapOpenBDUI() {
+        presenter.didTapOpenBDUI()
     }
 }
 

@@ -24,4 +24,5 @@ final class ProductDetailsModuleBuilder: ProductDetailsModuleBuilding {
 private final class ProductDetailsPresenterPlaceholder: ProductDetailsPresenterProtocol {
     func didLoad() {}
     func didTapBack() {}
+    func didTapOpenBDUI() {}
 }

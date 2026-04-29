@@ -75,6 +75,16 @@ final class AuthPresenter: AuthPresenterProtocol {
         }
     }
 
+    func didTapOpenBDUI() {
+        router.openBDUI(
+            config: BDUIConfig(
+                title: "BDUI Auth",
+                endpoint: "https://alfaitmo.ru/server/echo/409409",
+                key: "swift-market/auth"
+            )
+        )
+    }
+
     private func makeViewModel() -> AuthInitialViewModel {
         AuthInitialViewModel(
             title: "Swift Market",
